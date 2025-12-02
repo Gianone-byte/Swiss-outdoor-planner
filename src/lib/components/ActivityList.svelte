@@ -1,0 +1,189 @@
+<script>
+	export let activities = [];
+	export let showRouteInfo = false;
+	export let showAdminActions = false;
+	export let deleteAction = '?/deleteActivity';
+</script>
+
+{#if activities.length === 0}
+	<p class="empty-message">No activities logged yet.</p>
+{:else}
+	<ul class="activity-list">
+		{#each activities as activity}
+			<li class="activity-card">
+				<div class="activity-meta">
+					<div class="date-line">
+						<strong>{activity.date}</strong>
+						{#if activity.startTime}
+							<span class="time">@ {activity.startTime}</span>
+						{/if}
+					</div>
+					<div class="badges">
+						<span class="badge mood">Feeling {activity.feeling}/5</span>
+						<span class="badge duration">{activity.durationMinutes} min</span>
+						{#if showRouteInfo}
+							<span class="badge type">{activity.routeType}</span>
+							<a class="route-link" href={`/routes/${activity.routeId}`}>{activity.routeTitle}</a>
+						{/if}
+					</div>
+					{#if activity.notes}
+						<p class="notes">{activity.notes}</p>
+					{/if}
+					{#if activity.imageUrls?.length}
+						<div class="activity-images">
+							{#each activity.imageUrls as url}
+								<img src={url} alt={`Activity image for ${activity.date}`} class="activity-image" />
+							{/each}
+						</div>
+					{/if}
+				</div>
+				<div class="actions">
+					{#if activity.editUrl}
+						<a class="edit-button" href={activity.editUrl}>Edit</a>
+					{/if}
+					{#if showAdminActions}
+						<form method="post" action={deleteAction}>
+							<input type="hidden" name="activityId" value={activity.id} />
+							<button type="submit" class="danger-button">Delete</button>
+						</form>
+					{/if}
+				</div>
+			</li>
+		{/each}
+	</ul>
+{/if}
+
+<style>
+	.activity-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.activity-card {
+		background: #fff;
+		border-radius: 12px;
+		padding: 1rem 1.2rem;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.activity-meta {
+		flex: 1;
+	}
+
+	.date-line {
+		font-size: 1.05rem;
+	}
+
+	.badges {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		margin: 0.5rem 0;
+		align-items: center;
+	}
+
+	.badge {
+		padding: 0.15rem 0.5rem;
+		border-radius: 999px;
+		font-size: 0.8rem;
+		background: #eef2ff;
+		text-transform: capitalize;
+	}
+
+	.badge.mood {
+		background: #fff7ed;
+	}
+
+	.badge.duration {
+		background: #e0f2fe;
+	}
+
+	.badge.type {
+		background: #f3e8ff;
+	}
+
+	.route-link {
+		font-weight: 600;
+		color: #0f6fc5;
+		text-decoration: none;
+	}
+
+	.notes {
+		margin: 0.4rem 0 0;
+		font-size: 0.95rem;
+	}
+
+	.actions {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: 0.75rem;
+	}
+
+	.actions:empty {
+		display: none;
+	}
+
+	.edit-button {
+		background: #e0f2fe;
+		color: #0b5fad;
+		padding: 0.35rem 0.8rem;
+		border-radius: 6px;
+		text-decoration: none;
+		font-weight: 600;
+		font-size: 0.9rem;
+	}
+
+	.danger-button {
+		background: #c62828;
+		color: #fff;
+		border: none;
+		border-radius: 6px;
+		padding: 0.4rem 0.8rem;
+		cursor: pointer;
+		font-size: 0.9rem;
+	}
+
+	.activity-images {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-top: 0.25rem;
+	}
+
+	.activity-image {
+		max-width: 180px;
+		max-height: 140px;
+		object-fit: cover;
+		border-radius: 8px;
+		border: 1px solid #ddd;
+	}
+
+	.danger-button:hover {
+		background: #b71c1c;
+	}
+
+	.empty-message {
+		background: #fff;
+		padding: 1rem;
+		border-radius: 12px;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	}
+
+	@media (max-width: 700px) {
+		.activity-card {
+			flex-direction: column;
+		}
+
+		.actions {
+			align-self: flex-end;
+		}
+	}
+</style>
