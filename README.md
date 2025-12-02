@@ -1,60 +1,62 @@
 # Swiss Outdoor Planner
 
-Swiss Outdoor Planner is a SvelteKit prototype that helps hikers, runners, and cyclists plan Swiss routes, log real-world activities (with time, feeling, and image links), and review personal statistics. MongoDB stores all routes and activities so the primary workflow—plan → complete → reflect—works end-to-end.
+Swiss Outdoor Planner ist eine SvelteKit-Prototyp-App, mit der Wander-, Lauf- und Bike-Routen in der Schweiz geplant werden können. Nutzer*innen legen Strecken an, protokollieren absolvierte Aktivitäten (mit Zeit, Stimmung und Bild-Links) und sehen aggregierte Statistiken. MongoDB speichert alle Daten, sodass der Workflow „Planen → Durchführen → Reflektieren“ vollständig abgedeckt ist. Der vollständige Code liegt im öffentlichen GitHub-Repo: https://github.com/Gianone-byte/Swiss-outdoor-planner.
 
-## Main workflow
-1. **Create a route** under `/routes/new` with title, type (hike/run/bike), region, distance, optional elevation, and difficulty.
-2. **Open the route detail** page to review information and press **“Log activity”** once the outing is finished.
-3. **Log the activity** with date, start time, duration, feeling, notes, and up to three image URLs. The activity appears immediately on the route page and on the global activities list.
-4. **Review stats** on `/profile`, which aggregates activity counts, total distance per type, total duration per type, and how many activities include images.
+## Haupt-Workflow
+1. **Route anlegen** unter `/routes/new` mit Titel, Typ (hike/run/bike), Region, Distanz, optionalen Höhenmetern und Schwierigkeit.
+2. **Route betrachten** auf `/routes/[id]`. Nach dem Absolvieren klickt man auf „Log activity“.
+3. **Aktivität protokollieren** auf `/routes/[id]/activities/new`: Datum, Startzeit, Dauer, Gefühl, Notizen und bis zu drei Bild-Links eingeben. Die Aktivität erscheint sofort in der Liste und kann später bearbeitet werden.
+4. **Fortschritt auswerten** auf `/profile`, wo Gesamtaktivitäten, Distanz und Dauer pro Routentyp sowie die Anzahl Aktivitäten mit Bildern angezeigt werden.
 
-## Pages and roles
-- `/` – dashboard with the latest activities and quick links.
-- `/routes` – overview with type filter; **admin** can delete any route.
-- `/routes/new` – create new routes.
-- `/routes/[id]` – show full route details, linked activities, and:
-  - Users/admins can log new activities.
-  - **Admin** can edit distance/difficulty, delete the route, or delete individual activities.
-- `/routes/[id]/activities/new` – create an activity for a route.
-- `/activities` – overview of every activity with optional type filter.
-- `/profile` – summary metrics for the whole system.
+## Seiten & Rollen
+- `/` – Dashboard mit jüngsten Aktivitäten und Schnellzugriff auf die wichtigsten Seiten.
+- `/routes` – Routenübersicht mit Filter; **Admin** darf Einträge löschen.
+- `/routes/new` – Neue Route anlegen.
+- `/routes/[id]` – Detailseite mit Aktivitätenliste:
+  - User/Admin können Aktivitäten erstellen und bearbeiten.
+  - **Admin** darf zusätzlich Distanz/Schwierigkeit anpassen sowie Routen oder Aktivitäten löschen.
+- `/routes/[id]/activities/new` – Neue Aktivität für eine Route.
+- `/routes/[id]/activities/[activityId]/edit` – Aktivität nachträglich bearbeiten.
+- `/activities` – Gesamtübersicht aller Aktivitäten, optional nach Typ filterbar.
+- `/profile` – Aggregierte Statistiken.
 
-There is no real authentication. Instead, the header contains a role selector (user/admin). The chosen role is stored in a cookie so that server actions can enforce permissions (e.g., only admins may delete or edit data).
+Die Rollenwahl (user/admin) erfolgt im Header und wird als Cookie gespeichert. Serveraktionen prüfen dieses Cookie, damit z. B. Lösch- oder Editierrechte nur Admins offenstehen.
 
-## Getting started
+## Projekt aufsetzen
 ```bash
 npm install
 ```
 
-Create a `.env` file:
+`.env` anlegen:
 ```
-MONGO_URI=your-mongodb-connection-string
+MONGO_URI=dein-mongodb-connection-string
 ```
 
-Then run the SvelteKit dev server:
+Dev-Server starten:
 ```bash
 npm run dev
 ```
 
-## Working with Git & GitHub
+## Git & GitHub
+Das Repo liegt unter https://github.com/Gianone-byte/Swiss-outdoor-planner. Typischer Workflow:
 ```bash
 git init
 git add .
 git commit -m "Initial Swiss Outdoor Planner"
-git remote add origin https://github.com/<username>/swiss-outdoor-planner.git
+git remote add origin https://github.com/<username>/Swiss-outdoor-planner.git
 git push -u origin main
 ```
 
-## Deployment (Netlify example)
-1. Push the repo to GitHub.
-2. In Netlify, create a new site from Git.
-3. Set the environment variable `MONGO_URI` in the Netlify dashboard.
-4. Build command: `npm run build`
-5. Publish directory: `build`
+## Deployment (Netlify)
+1. Repository zu GitHub pushen.
+2. In Netlify ein neues Projekt aus dem GitHub-Repo erstellen.
+3. `MONGO_URI` im Netlify-Dashboard als Environment Variable setzen.
+4. Build-Befehl: `npm run build`
+5. Publish-Verzeichnis: `build`
 
-## Possible extensions
-- Additional filtering/sorting on routes or activities (e.g., distance, difficulty).
-- Richer statistics or charts on the profile page.
-- Map preview or elevation profile using Swisstopo or other APIs.
-- File uploads for images instead of URLs.
-- Sharing links or collaborative planning between multiple users.
+## Erweiterungsideen
+- Weitere Filter oder Sortierungen (z. B. Distanz, Schwierigkeit, Region).
+- Ausführlichere Statistiken oder Visualisierungen.
+- Kartenansicht/Höhenprofil mit Swisstopo oder anderen APIs.
+- Direkte Bild-Uploads statt Verlinkungen.
+- Gemeinsame Nutzung/Sharing zwischen mehreren Nutzer*innen.
