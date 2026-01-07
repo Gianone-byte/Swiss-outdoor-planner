@@ -7,7 +7,8 @@
 		region: form?.values?.region ?? '',
 		distanceKm: form?.values?.distanceKm ?? '',
 		elevationGain: form?.values?.elevationGain ?? '',
-		difficulty: form?.values?.difficulty ?? 'medium'
+		difficulty: form?.values?.difficulty ?? 'medium',
+		visibility: form?.values?.visibility ?? 'private'
 	};
 
 	const errors = form?.errors ?? {};
@@ -72,6 +73,14 @@
 			{#if errors.difficulty}
 				<span class="error">{errors.difficulty}</span>
 			{/if}
+		</label>
+
+		<label class="visibility">
+			<span>Route oeffentlich machen</span>
+			<select name="visibility">
+				<option value="private" selected={values.visibility === 'private'}>Private</option>
+				<option value="public" selected={values.visibility === 'public'}>Public</option>
+			</select>
 		</label>
 
 		<button type="submit">Save route</button>

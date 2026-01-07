@@ -3,13 +3,17 @@ import { requireUser } from '$lib/server/auth';
 
 const dateFormatter = new Intl.DateTimeFormat('de-CH', { dateStyle: 'medium' });
 
-function mapActivity(doc, routeMap) {
+function mapActivity(doc, routeMap, userId) {
 	const route = doc.routeId ? routeMap.get(doc.routeId.toString()) : null;
+	const canViewRoute = route
+		? route.visibility === 'public' || (route.ownerId && route.ownerId.equals(userId))
+		: false;
 	return {
 		id: doc._id.toString(),
 		routeId: doc.routeId?.toString(),
 		routeTitle: route?.title ?? 'Unknown route',
 		routeType: route?.type ?? 'unknown',
+		canViewRoute,
 		date: doc.date ? dateFormatter.format(doc.date) : 'No date',
 		startTime: doc.startTime ?? '',
 		durationMinutes: doc.durationMinutes ?? 0,
@@ -22,6 +26,7 @@ function mapActivity(doc, routeMap) {
 export async function load(event) {
 	await requireUser(event);
 	const db = await getDb();
+	const userId = new ObjectId(event.locals.user._id);
 
 	const activitiesCol = db.collection('activities');
 	const routesCol = db.collection('routes');
@@ -38,6 +43,6 @@ export async function load(event) {
 	}
 
 	return {
-		recentActivities: recentActivitiesDocs.map((doc) => mapActivity(doc, routeMap))
+		recentActivities: recentActivitiesDocs.map((doc) => mapActivity(doc, routeMap, userId))
 	};
 }

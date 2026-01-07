@@ -24,16 +24,20 @@ export async function load(event) {
 	if (!routeDoc) {
 		throw error(404, 'Route not found');
 	}
-	if (routeDoc.ownerId && !routeDoc.ownerId.equals(userId)) {
+	const isOwner = routeDoc.ownerId ? routeDoc.ownerId.equals(userId) : true;
+	const visibility = routeDoc.visibility ?? 'private';
+
+	if (!isOwner && visibility !== 'public') {
 		throw redirect(303, '/feed');
 	}
-	if (!routeDoc.ownerId) {
+	if (!routeDoc.ownerId && isOwner) {
 		// Dev convenience: claim legacy routes without ownerId for the current user.
 		await routesCol.updateOne({ _id }, { $set: { ownerId: userId } });
 	}
 
+	const activityOwnerId = isOwner ? userId : routeDoc.ownerId;
 	const activitiesDocs = await activitiesCol
-		.find({ routeId: _id, userId })
+		.find({ routeId: _id, userId: activityOwnerId })
 		.sort({ date: -1, createdAt: -1 })
 		.toArray();
 
@@ -45,24 +49,33 @@ export async function load(event) {
 		distanceKm: routeDoc.distanceKm,
 		elevationGain: routeDoc.elevationGain,
 		difficulty: routeDoc.difficulty,
+		visibility,
 		createdAt: routeDoc.createdAt ? dateFormatter.format(routeDoc.createdAt) : 'Unknown'
 	};
 
-	const activities = activitiesDocs.map((doc) => ({
-		id: doc._id.toString(),
-		routeId: id,
-		date: doc.date ? dateFormatter.format(doc.date) : 'No date',
-		startTime: doc.startTime ?? '',
-		durationMinutes: doc.durationMinutes ?? 0,
-		feeling: doc.feeling ?? 0,
-		notes: doc.notes ?? '',
-		imageUrls: doc.imageUrls ?? [],
-		editUrl: `/routes/${id}/activities/${doc._id.toString()}/edit`
-	}));
+	const activities = activitiesDocs.map((doc) => {
+		const base = {
+			id: doc._id.toString(),
+			routeId: id,
+			date: doc.date ? dateFormatter.format(doc.date) : 'No date',
+			startTime: doc.startTime ?? '',
+			durationMinutes: doc.durationMinutes ?? 0,
+			feeling: doc.feeling ?? 0,
+			notes: doc.notes ?? '',
+			imageUrls: doc.imageUrls ?? []
+		};
+
+		if (isOwner) {
+			return { ...base, editUrl: `/routes/${id}/activities/${doc._id.toString()}/edit` };
+		}
+
+		return base;
+	});
 
 	return {
 		route,
-		activities
+		activities,
+		isOwner
 	};
 }
 

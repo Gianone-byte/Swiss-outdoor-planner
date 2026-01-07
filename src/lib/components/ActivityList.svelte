@@ -23,7 +23,11 @@
 						<span class="badge duration">{activity.durationMinutes} min</span>
 						{#if showRouteInfo}
 							<span class="badge type">{activity.routeType}</span>
-							<a class="route-link" href={`/routes/${activity.routeId}`}>{activity.routeTitle}</a>
+							{#if activity.canViewRoute}
+								<a class="route-link" href={`/routes/${activity.routeId}`}>{activity.routeTitle}</a>
+							{:else}
+								<span class="route-title">{activity.routeTitle}</span>
+							{/if}
 						{/if}
 					</div>
 					{#if activity.notes}
@@ -113,6 +117,11 @@
 		font-weight: 600;
 		color: #0f6fc5;
 		text-decoration: none;
+	}
+
+	.route-title {
+		font-weight: 600;
+		color: #1f2937;
 	}
 
 	.notes {

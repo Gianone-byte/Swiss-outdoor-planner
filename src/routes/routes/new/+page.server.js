@@ -25,7 +25,8 @@ export const actions = {
 			elevationGain: formData.get('elevationGain')
 				? Number(formData.get('elevationGain'))
 				: undefined,
-			difficulty: formData.get('difficulty') ?? 'medium'
+			difficulty: formData.get('difficulty') ?? 'medium',
+			visibility: formData.get('visibility') === 'public' ? 'public' : 'private'
 		};
 
 		const errors = {};
@@ -55,6 +56,7 @@ export const actions = {
 			region: values.region,
 			distanceKm: values.distanceKm,
 			difficulty: values.difficulty,
+			visibility: values.visibility,
 			ownerId: new ObjectId(event.locals.user._id),
 			createdAt: new Date()
 		};

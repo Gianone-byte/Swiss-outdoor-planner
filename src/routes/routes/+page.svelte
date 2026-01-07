@@ -29,11 +29,20 @@
 	<button type="submit">Apply</button>
 </form>
 
-<RouteList
-	routes={data.routes}
-	showAdminActions={true}
-	deleteAction="?/deleteRoute"
-/>
+<section class="route-section">
+	<h2>Meine Routen</h2>
+	<RouteList
+		routes={data.myRoutes}
+		showAdminActions={true}
+		deleteAction="?/deleteRoute"
+	/>
+</section>
+
+<section class="route-section">
+	<h2>Oeffentliche Routen</h2>
+	<RouteList routes={data.publicRoutes} showAdminActions={false} />
+	<p class="hint">Oeffentliche Routen sind nur lesbar.</p>
+</section>
 
 <style>
 	.header-row {
@@ -88,6 +97,16 @@
 
 	button:hover {
 		background: #07417f;
+	}
+
+	.route-section {
+		margin-top: 1.5rem;
+	}
+
+	.hint {
+		color: #64748b;
+		font-size: 0.9rem;
+		margin-top: 0.5rem;
 	}
 
 	@media (max-width: 600px) {

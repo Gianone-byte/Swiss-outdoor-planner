@@ -13,13 +13,23 @@ export async function load(event) {
 	const db = await getDb();
 	const routesCol = db.collection('routes');
 
-	const filter = {
-		...(typeParam === 'all' ? {} : { type: typeParam }),
+	const typeFilter = typeParam === 'all' ? {} : { type: typeParam };
+	const myRoutesFilter = {
+		...typeFilter,
 		$or: [{ ownerId: userId }, { ownerId: { $exists: false } }]
 	};
-	const routesDocs = await routesCol.find(filter).sort({ createdAt: -1 }).toArray();
+	const publicRoutesFilter = {
+		...typeFilter,
+		visibility: 'public',
+		ownerId: { $ne: userId, $exists: true }
+	};
 
-	const legacyRouteIds = routesDocs.filter((route) => !route.ownerId).map((route) => route._id);
+	const [myRoutesDocs, publicRoutesDocs] = await Promise.all([
+		routesCol.find(myRoutesFilter).sort({ createdAt: -1 }).toArray(),
+		routesCol.find(publicRoutesFilter).sort({ createdAt: -1 }).toArray()
+	]);
+
+	const legacyRouteIds = myRoutesDocs.filter((route) => !route.ownerId).map((route) => route._id);
 	if (legacyRouteIds.length) {
 		// Dev convenience: claim legacy routes without ownerId for the current user.
 		await routesCol.updateMany(
@@ -28,16 +38,20 @@ export async function load(event) {
 		);
 	}
 
-	const routes = routesDocs.map((route) => ({
+	const mapRoute = (route) => ({
 		id: route._id.toString(),
 		title: route.title,
 		type: route.type,
 		region: route.region,
 		distanceKm: route.distanceKm,
 		difficulty: route.difficulty
-	}));
+	});
 
-	return { routes, currentType: typeParam };
+	return {
+		myRoutes: myRoutesDocs.map(mapRoute),
+		publicRoutes: publicRoutesDocs.map(mapRoute),
+		currentType: typeParam
+	};
 }
 
 export const actions = {

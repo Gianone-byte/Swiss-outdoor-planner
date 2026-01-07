@@ -2,6 +2,8 @@
 	import ActivityList from '$lib/components/ActivityList.svelte';
 
 	const { data, form } = $props();
+	const isOwner = data.isOwner;
+	const isReadOnly = !isOwner;
 
 	const updateErrors = form?.action === 'updateRoute' ? form.errors ?? {} : {};
 	const updateValues = {
@@ -21,64 +23,76 @@
 		<p class="back-link"><a href="/routes">← Back to routes</a></p>
 		<h1>{data.route.title}</h1>
 		<p class="muted">{data.route.region} · {data.route.type}</p>
+		{#if isReadOnly}
+			<p class="readonly">Nur lesen</p>
+		{/if}
 		<ul class="stats">
 			<li><strong>{data.route.distanceKm}</strong><span>km</span></li>
 			{#if data.route.elevationGain !== undefined && data.route.elevationGain !== null}
 				<li><strong>{data.route.elevationGain}</strong><span>m gain</span></li>
 			{/if}
 			<li><strong>{data.route.difficulty}</strong><span>difficulty</span></li>
+			{#if isOwner}
+				<li><strong>{data.route.visibility}</strong><span>visibility</span></li>
+			{/if}
 			<li><strong>{data.route.createdAt}</strong><span>created</span></li>
 		</ul>
 	</div>
-	<div class="actions">
-		<a class="primary" href={`/routes/${data.route.id}/activities/new`}>Log activity</a>
-		<form method="post" action="?/deleteRoute">
-			<button type="submit" class="danger">Delete route</button>
-		</form>
-	</div>
+	{#if isOwner}
+		<div class="actions">
+			<a class="primary" href={`/routes/${data.route.id}/activities/new`}>Log activity</a>
+			<form method="post" action="?/deleteRoute">
+				<button type="submit" class="danger">Delete route</button>
+			</form>
+		</div>
+	{/if}
 </section>
 
-<section class="admin-panel">
-	<h2>Edit route basics</h2>
-	<form method="post" action="?/updateRoute" class="inline-form">
-		<label>
-			<span>Distance (km)</span>
-			<input
-				type="number"
-				name="distanceKm"
-				min="0"
-				step="0.1"
-				value={updateValues.distanceKm}
-				required
-			/>
-			{#if updateErrors.distanceKm}
-				<span class="error">{updateErrors.distanceKm}</span>
-			{/if}
-		</label>
-		<label>
-			<span>Difficulty</span>
-			<select name="difficulty" required>
-				<option value="easy" selected={updateValues.difficulty === 'easy'}>Easy</option>
-				<option value="medium" selected={updateValues.difficulty === 'medium'}>Medium</option>
-				<option value="hard" selected={updateValues.difficulty === 'hard'}>Hard</option>
-			</select>
-			{#if updateErrors.difficulty}
-				<span class="error">{updateErrors.difficulty}</span>
-			{/if}
-		</label>
-		<button type="submit">Save changes</button>
-	</form>
-</section>
+{#if isOwner}
+	<section class="admin-panel">
+		<h2>Edit route basics</h2>
+		<form method="post" action="?/updateRoute" class="inline-form">
+			<label>
+				<span>Distance (km)</span>
+				<input
+					type="number"
+					name="distanceKm"
+					min="0"
+					step="0.1"
+					value={updateValues.distanceKm}
+					required
+				/>
+				{#if updateErrors.distanceKm}
+					<span class="error">{updateErrors.distanceKm}</span>
+				{/if}
+			</label>
+			<label>
+				<span>Difficulty</span>
+				<select name="difficulty" required>
+					<option value="easy" selected={updateValues.difficulty === 'easy'}>Easy</option>
+					<option value="medium" selected={updateValues.difficulty === 'medium'}>Medium</option>
+					<option value="hard" selected={updateValues.difficulty === 'hard'}>Hard</option>
+				</select>
+				{#if updateErrors.difficulty}
+					<span class="error">{updateErrors.difficulty}</span>
+				{/if}
+			</label>
+			<button type="submit">Save changes</button>
+		</form>
+	</section>
+{/if}
 
 <section class="activities">
 	<div class="section-head">
 		<h2>Activities for this route</h2>
-		<a href={`/routes/${data.route.id}/activities/new`}>+ Log activity</a>
+		{#if isOwner}
+			<a href={`/routes/${data.route.id}/activities/new`}>+ Log activity</a>
+		{/if}
 	</div>
 	<ActivityList
 		activities={data.activities}
 		showRouteInfo={false}
-		showAdminActions={true}
+		showAdminActions={isOwner}
 		deleteAction="?/deleteActivity"
 	/>
 </section>
@@ -105,6 +119,12 @@
 		color: #4b5563;
 		margin-top: -0.3rem;
 		text-transform: capitalize;
+	}
+
+	.readonly {
+		color: #0b5fad;
+		font-weight: 600;
+		margin: 0.35rem 0 0;
 	}
 
 	.stats {

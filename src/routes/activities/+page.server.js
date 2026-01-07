@@ -37,6 +37,7 @@ export async function load(event) {
 				routeId: doc.routeId?.toString(),
 				routeTitle: route?.title ?? 'Unknown route',
 				routeType: route?.type ?? 'unknown',
+				canViewRoute: true,
 				date: doc.date ? dateFormatter.format(doc.date) : 'No date',
 				startTime: doc.startTime ?? '',
 				durationMinutes: doc.durationMinutes ?? 0,
