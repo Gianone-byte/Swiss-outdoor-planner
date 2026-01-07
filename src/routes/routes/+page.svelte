@@ -31,7 +31,7 @@
 
 <RouteList
 	routes={data.routes}
-	showAdminActions={data.role === 'admin'}
+	showAdminActions={true}
 	deleteAction="?/deleteRoute"
 />
 

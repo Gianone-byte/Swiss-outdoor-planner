@@ -1,7 +1,7 @@
 <script>
 	export let routes = [];
 	export let showAdminActions = false;
-	export let deleteAction = '?/deleteRoute';
+	export let deleteAction = "?/deleteRoute";
 </script>
 
 {#if routes.length === 0}
@@ -34,8 +34,14 @@
 						{#if showAdminActions}
 							<td>
 								<form method="post" action={deleteAction}>
-									<input type="hidden" name="routeId" value={route.id} />
-									<button type="submit" class="danger-button">Delete</button>
+									<input
+										type="hidden"
+										name="routeId"
+										value={route.id}
+									/>
+									<button type="submit" class="danger-button"
+										>Delete</button
+									>
 								</form>
 							</td>
 						{/if}

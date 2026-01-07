@@ -1,4 +1,5 @@
 import { getDb, ObjectId } from '$lib/server/db';
+import { requireUser } from '$lib/server/auth';
 
 const dateFormatter = new Intl.DateTimeFormat('de-CH', { dateStyle: 'medium' });
 
@@ -18,8 +19,8 @@ function mapActivity(doc, routeMap) {
 	};
 }
 
-export async function load({ cookies }) {
-	const role = cookies.get('role') ?? 'user';
+export async function load(event) {
+	await requireUser(event);
 	const db = await getDb();
 
 	const activitiesCol = db.collection('activities');
@@ -37,7 +38,6 @@ export async function load({ cookies }) {
 	}
 
 	return {
-		role,
 		recentActivities: recentActivitiesDocs.map((doc) => mapActivity(doc, routeMap))
 	};
 }

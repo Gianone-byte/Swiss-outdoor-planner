@@ -1,10 +1,12 @@
 import { getDb, ObjectId } from '$lib/server/db';
+import { requireUser } from '$lib/server/auth';
 
 const dateFormatter = new Intl.DateTimeFormat('de-CH', { dateStyle: 'medium' });
 const allowedTypes = ['all', 'hike', 'run', 'bike'];
 
-export async function load({ cookies, url }) {
-	const role = cookies.get('role') ?? 'user';
+export async function load(event) {
+	await requireUser(event);
+	const { url } = event;
 	const typeParam = url.searchParams.get('type') ?? 'all';
 	const typeFilter = allowedTypes.includes(typeParam) ? typeParam : 'all';
 
@@ -41,7 +43,6 @@ export async function load({ cookies, url }) {
 		.filter((activity) => (typeFilter === 'all' ? true : activity.routeType === typeFilter));
 
 	return {
-		role,
 		activities,
 		typeFilter
 	};

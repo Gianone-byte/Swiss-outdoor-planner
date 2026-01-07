@@ -1,8 +1,10 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { getDb, ObjectId } from '$lib/server/db';
+import { requireUser } from '$lib/server/auth';
 
-export async function load({ params, cookies }) {
-	const role = cookies.get('role') ?? 'user';
+export async function load(event) {
+	await requireUser(event);
+	const { params } = event;
 	const { id } = params;
 	if (!ObjectId.isValid(id)) {
 		throw error(404, 'Route not found');
@@ -15,7 +17,6 @@ export async function load({ params, cookies }) {
 	}
 
 	return {
-		role,
 		route: {
 			id,
 			title: routeDoc.title,
@@ -26,7 +27,9 @@ export async function load({ params, cookies }) {
 }
 
 export const actions = {
-	default: async ({ request, params }) => {
+	default: async (event) => {
+		await requireUser(event);
+		const { request, params } = event;
 		if (!ObjectId.isValid(params.id)) {
 			throw error(404, 'Route not found');
 		}

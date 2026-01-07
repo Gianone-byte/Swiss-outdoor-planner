@@ -1,5 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { getDb, ObjectId } from '$lib/server/db';
+import { requireUser } from '$lib/server/auth';
 
 function formatDateInput(value) {
 	if (!value) return '';
@@ -8,8 +9,9 @@ function formatDateInput(value) {
 	return date.toISOString().split('T')[0];
 }
 
-export async function load({ params, cookies }) {
-	const role = cookies.get('role') ?? 'user';
+export async function load(event) {
+	await requireUser(event);
+	const { params } = event;
 	const { id, activityId } = params;
 
 	if (!ObjectId.isValid(id) || !ObjectId.isValid(activityId)) {
@@ -35,7 +37,6 @@ export async function load({ params, cookies }) {
 	}
 
 	return {
-		role,
 		route: {
 			id,
 			title: routeDoc.title
@@ -55,7 +56,9 @@ export async function load({ params, cookies }) {
 }
 
 export const actions = {
-	default: async ({ request, params }) => {
+	default: async (event) => {
+		await requireUser(event);
+		const { request, params } = event;
 		const { id, activityId } = params;
 		if (!ObjectId.isValid(id) || !ObjectId.isValid(activityId)) {
 			throw error(404, 'Activity not found');

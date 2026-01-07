@@ -2,7 +2,6 @@
 	import ActivityList from '$lib/components/ActivityList.svelte';
 
 	const { data, form } = $props();
-	const isAdmin = data.role === 'admin';
 
 	const updateErrors = form?.action === 'updateRoute' ? form.errors ?? {} : {};
 	const updateValues = {
@@ -33,47 +32,43 @@
 	</div>
 	<div class="actions">
 		<a class="primary" href={`/routes/${data.route.id}/activities/new`}>Log activity</a>
-		{#if isAdmin}
-			<form method="post" action="?/deleteRoute">
-				<button type="submit" class="danger">Delete route</button>
-			</form>
-		{/if}
+		<form method="post" action="?/deleteRoute">
+			<button type="submit" class="danger">Delete route</button>
+		</form>
 	</div>
 </section>
 
-{#if isAdmin}
-	<section class="admin-panel">
-		<h2>Edit route basics</h2>
-		<form method="post" action="?/updateRoute" class="inline-form">
-			<label>
-				<span>Distance (km)</span>
-				<input
-					type="number"
-					name="distanceKm"
-					min="0"
-					step="0.1"
-					value={updateValues.distanceKm}
-					required
-				/>
-				{#if updateErrors.distanceKm}
-					<span class="error">{updateErrors.distanceKm}</span>
-				{/if}
-			</label>
-			<label>
-				<span>Difficulty</span>
-				<select name="difficulty" required>
-					<option value="easy" selected={updateValues.difficulty === 'easy'}>Easy</option>
-					<option value="medium" selected={updateValues.difficulty === 'medium'}>Medium</option>
-					<option value="hard" selected={updateValues.difficulty === 'hard'}>Hard</option>
-				</select>
-				{#if updateErrors.difficulty}
-					<span class="error">{updateErrors.difficulty}</span>
-				{/if}
-			</label>
-			<button type="submit">Save changes</button>
-		</form>
-	</section>
-{/if}
+<section class="admin-panel">
+	<h2>Edit route basics</h2>
+	<form method="post" action="?/updateRoute" class="inline-form">
+		<label>
+			<span>Distance (km)</span>
+			<input
+				type="number"
+				name="distanceKm"
+				min="0"
+				step="0.1"
+				value={updateValues.distanceKm}
+				required
+			/>
+			{#if updateErrors.distanceKm}
+				<span class="error">{updateErrors.distanceKm}</span>
+			{/if}
+		</label>
+		<label>
+			<span>Difficulty</span>
+			<select name="difficulty" required>
+				<option value="easy" selected={updateValues.difficulty === 'easy'}>Easy</option>
+				<option value="medium" selected={updateValues.difficulty === 'medium'}>Medium</option>
+				<option value="hard" selected={updateValues.difficulty === 'hard'}>Hard</option>
+			</select>
+			{#if updateErrors.difficulty}
+				<span class="error">{updateErrors.difficulty}</span>
+			{/if}
+		</label>
+		<button type="submit">Save changes</button>
+	</form>
+</section>
 
 <section class="activities">
 	<div class="section-head">
@@ -83,7 +78,7 @@
 	<ActivityList
 		activities={data.activities}
 		showRouteInfo={false}
-		showAdminActions={isAdmin}
+		showAdminActions={true}
 		deleteAction="?/deleteActivity"
 	/>
 </section>

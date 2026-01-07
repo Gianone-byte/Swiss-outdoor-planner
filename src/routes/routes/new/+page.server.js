@@ -1,17 +1,19 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
+import { requireUser } from '$lib/server/auth';
 
 const allowedTypes = ['hike', 'run', 'bike'];
 const allowedDifficulties = ['easy', 'medium', 'hard'];
 
-export async function load({ cookies }) {
-	return {
-		role: cookies.get('role') ?? 'user'
-	};
+export async function load(event) {
+	await requireUser(event);
+	return {};
 }
 
 export const actions = {
-	default: async ({ request }) => {
+	default: async (event) => {
+		await requireUser(event);
+		const { request } = event;
 		const db = await getDb();
 		const formData = await request.formData();
 

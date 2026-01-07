@@ -1,10 +1,12 @@
 import { fail } from '@sveltejs/kit';
 import { getDb, ObjectId } from '$lib/server/db';
+import { requireUser } from '$lib/server/auth';
 
 const allowedTypes = ['all', 'hike', 'run', 'bike'];
 
-export async function load({ cookies, url }) {
-	const role = cookies.get('role') ?? 'user';
+export async function load(event) {
+	await requireUser(event);
+	const { url } = event;
 	const inputType = url.searchParams.get('type') ?? 'all';
 	const typeParam = allowedTypes.includes(inputType) ? inputType : 'all';
 	const db = await getDb();
@@ -22,15 +24,13 @@ export async function load({ cookies, url }) {
 		difficulty: route.difficulty
 	}));
 
-	return { role, routes, currentType: typeParam };
+	return { routes, currentType: typeParam };
 }
 
 export const actions = {
-	deleteRoute: async ({ request, cookies }) => {
-		const role = cookies.get('role') ?? 'user';
-		if (role !== 'admin') {
-			return fail(403, { message: 'You are not allowed to delete routes.' });
-		}
+	deleteRoute: async (event) => {
+		await requireUser(event);
+		const { request } = event;
 
 		const formData = await request.formData();
 		const routeId = formData.get('routeId');

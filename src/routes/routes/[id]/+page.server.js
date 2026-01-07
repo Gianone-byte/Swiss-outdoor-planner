@@ -1,11 +1,13 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { getDb, ObjectId } from '$lib/server/db';
+import { requireUser } from '$lib/server/auth';
 
 const dateFormatter = new Intl.DateTimeFormat('de-CH', { dateStyle: 'medium' });
 const allowedDifficulties = ['easy', 'medium', 'hard'];
 
-export async function load({ params, cookies }) {
-	const role = cookies.get('role') ?? 'user';
+export async function load(event) {
+	await requireUser(event);
+	const { params } = event;
 	const { id } = params;
 
 	if (!ObjectId.isValid(id)) {
@@ -51,18 +53,15 @@ export async function load({ params, cookies }) {
 	}));
 
 	return {
-		role,
 		route,
 		activities
 	};
 }
 
 export const actions = {
-	updateRoute: async ({ request, params, cookies }) => {
-		const role = cookies.get('role') ?? 'user';
-		if (role !== 'admin') {
-			return fail(403, { action: 'updateRoute', message: 'Not authorized.' });
-		}
+	updateRoute: async (event) => {
+		await requireUser(event);
+		const { request, params } = event;
 
 		if (!ObjectId.isValid(params.id)) {
 			throw error(404, 'Route not found');
@@ -99,11 +98,9 @@ export const actions = {
 		throw redirect(303, `/routes/${params.id}`);
 	},
 
-	deleteRoute: async ({ params, cookies }) => {
-		const role = cookies.get('role') ?? 'user';
-		if (role !== 'admin') {
-			return fail(403, { message: 'Only admins can delete routes.' });
-		}
+	deleteRoute: async (event) => {
+		await requireUser(event);
+		const { params } = event;
 		if (!ObjectId.isValid(params.id)) {
 			throw error(404, 'Route not found');
 		}
@@ -116,11 +113,9 @@ export const actions = {
 		throw redirect(303, '/routes');
 	},
 
-	deleteActivity: async ({ request, params, cookies }) => {
-		const role = cookies.get('role') ?? 'user';
-		if (role !== 'admin') {
-			return fail(403, { message: 'Only admins can delete activities.' });
-		}
+	deleteActivity: async (event) => {
+		await requireUser(event);
+		const { request, params } = event;
 		if (!ObjectId.isValid(params.id)) {
 			throw error(404, 'Route not found');
 		}

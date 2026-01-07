@@ -9,7 +9,7 @@
 
 <section class="profile">
 	<h1>Activity profile</h1>
-	<p>High-level stats across every role. Track progress and see where photos were captured.</p>
+	<p>High-level stats across your logged activities. Track progress and see where photos were captured.</p>
 
 	<div class="cards">
 		<div class="card">
