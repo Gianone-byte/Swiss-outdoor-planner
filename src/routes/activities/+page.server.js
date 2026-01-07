@@ -9,12 +9,16 @@ export async function load(event) {
 	const { url } = event;
 	const typeParam = url.searchParams.get('type') ?? 'all';
 	const typeFilter = allowedTypes.includes(typeParam) ? typeParam : 'all';
+	const userId = new ObjectId(event.locals.user._id);
 
 	const db = await getDb();
 	const activitiesCol = db.collection('activities');
 	const routesCol = db.collection('routes');
 
-	const activitiesDocs = await activitiesCol.find({}).sort({ date: -1, createdAt: -1 }).toArray();
+	const activitiesDocs = await activitiesCol
+		.find({ userId })
+		.sort({ date: -1, createdAt: -1 })
+		.toArray();
 	const routeIds = [...new Set(activitiesDocs.map((activity) => activity.routeId?.toString()).filter(Boolean))];
 	let routeMap = new Map();
 

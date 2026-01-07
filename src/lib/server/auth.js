@@ -49,6 +49,7 @@ export async function getUserFromSession(token) {
 	if (!user) return null;
 
 	return {
+		_id: user._id.toString(),
 		id: user._id.toString(),
 		email: user.email,
 		username: user.username,

@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { getDb } from '$lib/server/db';
+import { getDb, ObjectId } from '$lib/server/db';
 import { requireUser } from '$lib/server/auth';
 
 const allowedTypes = ['hike', 'run', 'bike'];
@@ -55,6 +55,7 @@ export const actions = {
 			region: values.region,
 			distanceKm: values.distanceKm,
 			difficulty: values.difficulty,
+			ownerId: new ObjectId(event.locals.user._id),
 			createdAt: new Date()
 		};
 

@@ -13,6 +13,7 @@ export async function load(event) {
 	await requireUser(event);
 	const { params } = event;
 	const { id, activityId } = params;
+	const userId = new ObjectId(event.locals.user._id);
 
 	if (!ObjectId.isValid(id) || !ObjectId.isValid(activityId)) {
 		throw error(404, 'Activity not found');
@@ -22,18 +23,29 @@ export async function load(event) {
 	const routesCol = db.collection('routes');
 	const activitiesCol = db.collection('activities');
 
-	const routeDoc = await routesCol.findOne({ _id: new ObjectId(id) });
+	const routeId = new ObjectId(id);
+	const routeDoc = await routesCol.findOne({ _id: routeId });
 	if (!routeDoc) {
 		throw error(404, 'Route not found');
+	}
+	if (routeDoc.ownerId && !routeDoc.ownerId.equals(userId)) {
+		throw redirect(303, '/feed');
+	}
+	if (!routeDoc.ownerId) {
+		// Dev convenience: claim legacy routes without ownerId for the current user.
+		await routesCol.updateOne({ _id: routeId }, { $set: { ownerId: userId } });
 	}
 
 	const activityDoc = await activitiesCol.findOne({
 		_id: new ObjectId(activityId),
-		routeId: new ObjectId(id)
+		routeId
 	});
 
 	if (!activityDoc) {
 		throw error(404, 'Activity not found');
+	}
+	if (activityDoc.userId && !activityDoc.userId.equals(userId)) {
+		throw redirect(303, '/feed');
 	}
 
 	return {
@@ -59,9 +71,22 @@ export const actions = {
 	default: async (event) => {
 		await requireUser(event);
 		const { request, params } = event;
+		const userId = new ObjectId(event.locals.user._id);
 		const { id, activityId } = params;
 		if (!ObjectId.isValid(id) || !ObjectId.isValid(activityId)) {
 			throw error(404, 'Activity not found');
+		}
+
+		const db = await getDb();
+		const routesCol = db.collection('routes');
+		const routeId = new ObjectId(id);
+		const routeDoc = await routesCol.findOne({ _id: routeId });
+		if (!routeDoc || (routeDoc.ownerId && !routeDoc.ownerId.equals(userId))) {
+			return fail(403, { message: 'Not authorized to update this activity.' });
+		}
+		if (!routeDoc.ownerId) {
+			// Dev convenience: claim legacy routes without ownerId for the current user.
+			await routesCol.updateOne({ _id: routeId }, { $set: { ownerId: userId } });
 		}
 
 		const formData = await request.formData();
@@ -99,9 +124,12 @@ export const actions = {
 
 		const imageUrls = [values.imageUrl1, values.imageUrl2, values.imageUrl3].filter((url) => url);
 
-		const db = await getDb();
 		await db.collection('activities').updateOne(
-			{ _id: new ObjectId(activityId), routeId: new ObjectId(id) },
+			{
+				_id: new ObjectId(activityId),
+				routeId,
+				$or: [{ userId }, { userId: { $exists: false } }]
+			},
 			{
 				$set: {
 					date: dateValue,
@@ -109,7 +137,8 @@ export const actions = {
 					durationMinutes: values.durationMinutes,
 					feeling: values.feeling,
 					notes: values.notes || undefined,
-					imageUrls
+					imageUrls,
+					userId
 				}
 			}
 		);

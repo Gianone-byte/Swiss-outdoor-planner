@@ -9,6 +9,7 @@ export async function load(event) {
 	await requireUser(event);
 	const { params } = event;
 	const { id } = params;
+	const userId = new ObjectId(event.locals.user._id);
 
 	if (!ObjectId.isValid(id)) {
 		throw error(404, 'Route not found');
@@ -23,9 +24,16 @@ export async function load(event) {
 	if (!routeDoc) {
 		throw error(404, 'Route not found');
 	}
+	if (routeDoc.ownerId && !routeDoc.ownerId.equals(userId)) {
+		throw redirect(303, '/feed');
+	}
+	if (!routeDoc.ownerId) {
+		// Dev convenience: claim legacy routes without ownerId for the current user.
+		await routesCol.updateOne({ _id }, { $set: { ownerId: userId } });
+	}
 
 	const activitiesDocs = await activitiesCol
-		.find({ routeId: _id })
+		.find({ routeId: _id, userId })
 		.sort({ date: -1, createdAt: -1 })
 		.toArray();
 
@@ -62,6 +70,7 @@ export const actions = {
 	updateRoute: async (event) => {
 		await requireUser(event);
 		const { request, params } = event;
+		const userId = new ObjectId(event.locals.user._id);
 
 		if (!ObjectId.isValid(params.id)) {
 			throw error(404, 'Route not found');
@@ -88,12 +97,23 @@ export const actions = {
 		}
 
 		const db = await getDb();
-		await db
-			.collection('routes')
-			.updateOne(
-				{ _id: new ObjectId(params.id) },
-				{ $set: { distanceKm: distance, difficulty } }
-			);
+		const routesCol = db.collection('routes');
+		const _id = new ObjectId(params.id);
+		const routeDoc = await routesCol.findOne({ _id });
+		if (!routeDoc || (routeDoc.ownerId && !routeDoc.ownerId.equals(userId))) {
+			return fail(403, { action: 'updateRoute', message: 'Not authorized.' });
+		}
+
+		await routesCol.updateOne(
+			{ _id },
+			{
+				$set: {
+					distanceKm: distance,
+					difficulty,
+					...(routeDoc.ownerId ? {} : { ownerId: userId })
+				}
+			}
+		);
 
 		throw redirect(303, `/routes/${params.id}`);
 	},
@@ -101,14 +121,23 @@ export const actions = {
 	deleteRoute: async (event) => {
 		await requireUser(event);
 		const { params } = event;
+		const userId = new ObjectId(event.locals.user._id);
 		if (!ObjectId.isValid(params.id)) {
 			throw error(404, 'Route not found');
 		}
 
 		const db = await getDb();
 		const _id = new ObjectId(params.id);
-		await db.collection('routes').deleteOne({ _id });
-		await db.collection('activities').deleteMany({ routeId: _id });
+		const routesCol = db.collection('routes');
+		const routeDoc = await routesCol.findOne({ _id });
+		if (!routeDoc || (routeDoc.ownerId && !routeDoc.ownerId.equals(userId))) {
+			return fail(403, { message: 'Only the owner can delete routes.' });
+		}
+		await routesCol.deleteOne({ _id });
+		await db.collection('activities').deleteMany({
+			routeId: _id,
+			$or: [{ userId }, { userId: { $exists: false } }]
+		});
 
 		throw redirect(303, '/routes');
 	},
@@ -116,6 +145,7 @@ export const actions = {
 	deleteActivity: async (event) => {
 		await requireUser(event);
 		const { request, params } = event;
+		const userId = new ObjectId(event.locals.user._id);
 		if (!ObjectId.isValid(params.id)) {
 			throw error(404, 'Route not found');
 		}
@@ -127,9 +157,19 @@ export const actions = {
 		}
 
 		const db = await getDb();
-		await db
-			.collection('activities')
-			.deleteOne({ _id: new ObjectId(activityId), routeId: new ObjectId(params.id) });
+		const _id = new ObjectId(activityId);
+		const routeId = new ObjectId(params.id);
+
+		const activity = await db.collection('activities').findOne({ _id, routeId });
+		if (!activity || (activity.userId && !activity.userId.equals(userId))) {
+			return fail(403, { message: 'Only the owner can delete activities.' });
+		}
+
+		await db.collection('activities').deleteOne({
+			_id,
+			routeId,
+			$or: [{ userId }, { userId: { $exists: false } }]
+		});
 
 		throw redirect(303, `/routes/${params.id}`);
 	}

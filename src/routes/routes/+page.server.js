@@ -9,11 +9,24 @@ export async function load(event) {
 	const { url } = event;
 	const inputType = url.searchParams.get('type') ?? 'all';
 	const typeParam = allowedTypes.includes(inputType) ? inputType : 'all';
+	const userId = new ObjectId(event.locals.user._id);
 	const db = await getDb();
 	const routesCol = db.collection('routes');
 
-	const filter = typeParam === 'all' ? {} : { type: typeParam };
+	const filter = {
+		...(typeParam === 'all' ? {} : { type: typeParam }),
+		$or: [{ ownerId: userId }, { ownerId: { $exists: false } }]
+	};
 	const routesDocs = await routesCol.find(filter).sort({ createdAt: -1 }).toArray();
+
+	const legacyRouteIds = routesDocs.filter((route) => !route.ownerId).map((route) => route._id);
+	if (legacyRouteIds.length) {
+		// Dev convenience: claim legacy routes without ownerId for the current user.
+		await routesCol.updateMany(
+			{ _id: { $in: legacyRouteIds } },
+			{ $set: { ownerId: userId } }
+		);
+	}
 
 	const routes = routesDocs.map((route) => ({
 		id: route._id.toString(),
@@ -42,9 +55,18 @@ export const actions = {
 		const routesCol = db.collection('routes');
 		const activitiesCol = db.collection('activities');
 		const _id = new ObjectId(routeId);
+		const userId = new ObjectId(event.locals.user._id);
+
+		const routeDoc = await routesCol.findOne({ _id });
+		if (!routeDoc || (routeDoc.ownerId && !routeDoc.ownerId.equals(userId))) {
+			return fail(403, { message: 'You are not allowed to delete routes.' });
+		}
 
 		await routesCol.deleteOne({ _id });
-		await activitiesCol.deleteMany({ routeId: _id });
+		await activitiesCol.deleteMany({
+			routeId: _id,
+			$or: [{ userId }, { userId: { $exists: false } }]
+		});
 
 		return { deleted: true };
 	}

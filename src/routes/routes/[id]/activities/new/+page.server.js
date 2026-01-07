@@ -6,14 +6,24 @@ export async function load(event) {
 	await requireUser(event);
 	const { params } = event;
 	const { id } = params;
+	const userId = new ObjectId(event.locals.user._id);
 	if (!ObjectId.isValid(id)) {
 		throw error(404, 'Route not found');
 	}
 
 	const db = await getDb();
-	const routeDoc = await db.collection('routes').findOne({ _id: new ObjectId(id) });
+	const routesCol = db.collection('routes');
+	const routeId = new ObjectId(id);
+	const routeDoc = await routesCol.findOne({ _id: routeId });
 	if (!routeDoc) {
 		throw error(404, 'Route not found');
+	}
+	if (routeDoc.ownerId && !routeDoc.ownerId.equals(userId)) {
+		throw redirect(303, '/feed');
+	}
+	if (!routeDoc.ownerId) {
+		// Dev convenience: claim legacy routes without ownerId for the current user.
+		await routesCol.updateOne({ _id: routeId }, { $set: { ownerId: userId } });
 	}
 
 	return {
@@ -30,8 +40,21 @@ export const actions = {
 	default: async (event) => {
 		await requireUser(event);
 		const { request, params } = event;
+		const userId = new ObjectId(event.locals.user._id);
 		if (!ObjectId.isValid(params.id)) {
 			throw error(404, 'Route not found');
+		}
+
+		const db = await getDb();
+		const routesCol = db.collection('routes');
+		const routeId = new ObjectId(params.id);
+		const routeDoc = await routesCol.findOne({ _id: routeId });
+		if (!routeDoc || (routeDoc.ownerId && !routeDoc.ownerId.equals(userId))) {
+			return fail(403, { message: 'Not authorized to log activity for this route.' });
+		}
+		if (!routeDoc.ownerId) {
+			// Dev convenience: claim legacy routes without ownerId for the current user.
+			await routesCol.updateOne({ _id: routeId }, { $set: { ownerId: userId } });
 		}
 
 		const formData = await request.formData();
@@ -70,9 +93,9 @@ export const actions = {
 			return fail(400, { errors, values });
 		}
 
-		const db = await getDb();
 		await db.collection('activities').insertOne({
-			routeId: new ObjectId(params.id),
+			routeId,
+			userId,
 			date: dateValue,
 			startTime: values.startTime,
 			durationMinutes: values.durationMinutes,
