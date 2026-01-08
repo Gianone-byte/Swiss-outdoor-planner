@@ -49,7 +49,7 @@
 						target="_blank"
 						rel="noopener"
 					>
-						Swisstopo oeffnen
+						Swisstopo öffnen
 					</a>
 				{/if}
 				{#if data.route.gpx}

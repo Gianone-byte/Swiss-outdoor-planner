@@ -62,18 +62,18 @@
 			showFavoriteButton={true}
 			isFavoritedList={true}
 		/>
-		<p class="hint">Gemerkte oeffentliche Routen anderer User.</p>
+		<p class="hint">Gemerkte öffentliche Routen anderer User.</p>
 	</section>
 {/if}
 
 <section class="route-section">
-	<h2>Oeffentliche Routen</h2>
+	<h2>Öffentliche Routen</h2>
 	<RouteList
 		routes={data.publicRoutes}
 		showAdminActions={false}
 		showFavoriteButton={true}
 	/>
-	<p class="hint">Oeffentliche Routen sind nur lesbar.</p>
+	<p class="hint">Öffentliche Routen sind nur lesbar.</p>
 </section>
 
 <style>

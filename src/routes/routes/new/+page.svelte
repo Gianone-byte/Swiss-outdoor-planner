@@ -77,7 +77,7 @@
 		</label>
 
 		<label class="visibility">
-			<span>Route oeffentlich machen</span>
+			<span>Route öffentlich machen</span>
 			<select name="visibility">
 				<option value="private" selected={values.visibility === 'private'}>Private</option>
 				<option value="public" selected={values.visibility === 'public'}>Public</option>

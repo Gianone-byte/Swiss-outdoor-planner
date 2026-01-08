@@ -35,7 +35,7 @@
 			<label>
 				<span>Email</span>
 				<input type="email" value={data.profile.email} disabled readonly />
-				<span class="hint">Email kann nicht geaendert werden.</span>
+				<span class="hint">Email kann nicht geändert werden.</span>
 			</label>
 
 			<label>
@@ -80,7 +80,7 @@
 
 <section class="profile stats-section">
 	<h2>Activity Statistiken</h2>
-	<p>Uebersicht ueber deine geloggten Aktivitaeten.</p>
+	<p>Übersicht über deine geloggten Aktivitäten.</p>
 
 	<div class="cards">
 		<div class="card">
