@@ -49,6 +49,10 @@ export async function load(event) {
 		distanceKm: routeDoc.distanceKm,
 		elevationGain: routeDoc.elevationGain,
 		difficulty: routeDoc.difficulty,
+		swisstopoUrl: routeDoc.swisstopoUrl ?? '',
+		gpx: routeDoc.gpx
+			? { filename: routeDoc.gpx.filename, mimeType: routeDoc.gpx.mimeType }
+			: null,
 		visibility,
 		createdAt: routeDoc.createdAt ? dateFormatter.format(routeDoc.createdAt) : 'Unknown'
 	};

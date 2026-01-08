@@ -8,7 +8,8 @@
 		distanceKm: form?.values?.distanceKm ?? '',
 		elevationGain: form?.values?.elevationGain ?? '',
 		difficulty: form?.values?.difficulty ?? 'medium',
-		visibility: form?.values?.visibility ?? 'private'
+		visibility: form?.values?.visibility ?? 'private',
+		swisstopoUrl: form?.values?.swisstopoUrl ?? ''
 	};
 
 	const errors = form?.errors ?? {};
@@ -18,7 +19,7 @@
 	<h1>Create a new route</h1>
 	<p>Define the key information about your Swiss adventure before logging activities.</p>
 
-	<form method="post" class="route-form">
+	<form method="post" class="route-form" enctype="multipart/form-data">
 		<label>
 			<span>Title *</span>
 			<input type="text" name="title" required value={values.title} />
@@ -81,6 +82,26 @@
 				<option value="private" selected={values.visibility === 'private'}>Private</option>
 				<option value="public" selected={values.visibility === 'public'}>Public</option>
 			</select>
+		</label>
+
+		<label>
+			<span>Swisstopo-Link (optional)</span>
+			<input type="url" name="swisstopoUrl" value={values.swisstopoUrl} />
+			{#if errors.swisstopoUrl}
+				<span class="error">{errors.swisstopoUrl}</span>
+			{/if}
+		</label>
+
+		<label>
+			<span>GPX-Datei (optional)</span>
+			<input
+				type="file"
+				name="gpx"
+				accept=".gpx,application/gpx+xml,application/octet-stream"
+			/>
+			{#if errors.gpx}
+				<span class="error">{errors.gpx}</span>
+			{/if}
 		</label>
 
 		<button type="submit">Save route</button>

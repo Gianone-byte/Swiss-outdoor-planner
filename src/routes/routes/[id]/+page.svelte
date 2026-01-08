@@ -26,6 +26,25 @@
 		{#if isReadOnly}
 			<p class="readonly">Nur lesen</p>
 		{/if}
+		{#if data.route.swisstopoUrl || data.route.gpx}
+			<div class="route-links">
+				{#if data.route.swisstopoUrl}
+					<a
+						class="secondary"
+						href={data.route.swisstopoUrl}
+						target="_blank"
+						rel="noopener"
+					>
+						Swisstopo oeffnen
+					</a>
+				{/if}
+				{#if data.route.gpx}
+					<a class="secondary" href={`/routes/${data.route.id}/gpx`} download>
+						GPX herunterladen
+					</a>
+				{/if}
+			</div>
+		{/if}
 		<ul class="stats">
 			<li><strong>{data.route.distanceKm}</strong><span>km</span></li>
 			{#if data.route.elevationGain !== undefined && data.route.elevationGain !== null}
@@ -127,6 +146,13 @@
 		margin: 0.35rem 0 0;
 	}
 
+	.route-links {
+		display: flex;
+		gap: 0.6rem;
+		flex-wrap: wrap;
+		margin: 0.8rem 0 0;
+	}
+
 	.stats {
 		list-style: none;
 		display: flex;
@@ -161,6 +187,15 @@
 		color: #fff;
 		text-decoration: none;
 		padding: 0.7rem 1.2rem;
+		border-radius: 10px;
+		font-weight: 600;
+	}
+
+	.secondary {
+		background: #e0f2fe;
+		color: #0b5fad;
+		text-decoration: none;
+		padding: 0.6rem 1.1rem;
 		border-radius: 10px;
 		font-weight: 600;
 	}
