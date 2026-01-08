@@ -58,7 +58,7 @@
 
 		<label>
 			<span>Elevation gain (m)</span>
-			<input type="number" name="elevationGain" min="0" step="10" value={values.elevationGain} />
+			<input type="number" name="elevationGain" min="0" step="1" value={values.elevationGain} />
 			{#if errors.elevationGain}
 				<span class="error">{errors.elevationGain}</span>
 			{/if}

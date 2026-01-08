@@ -1,7 +1,7 @@
 <script>
 	import RouteList from '$lib/components/RouteList.svelte';
 
-	const { data } = $props();
+	const { data, form } = $props();
 	let selectedType = data.currentType;
 	const typeOptions = [
 		{ label: 'All', value: 'all' },
@@ -9,6 +9,17 @@
 		{ label: 'Run', value: 'run' },
 		{ label: 'Bike', value: 'bike' }
 	];
+
+	// Feedback message for favorites
+	let feedbackMessage = $derived(() => {
+		if (form?.success && form?.action === 'addFavorite') {
+			return form.alreadyFavorited ? 'Route war bereits gemerkt.' : 'Route gemerkt!';
+		}
+		if (form?.success && form?.action === 'removeFavorite') {
+			return 'Route aus Favoriten entfernt.';
+		}
+		return null;
+	});
 </script>
 
 <section class="header-row">
@@ -18,6 +29,10 @@
 	</div>
 	<a class="primary" href="/routes/new">+ New route</a>
 </section>
+
+{#if feedbackMessage()}
+	<div class="feedback-message success">{feedbackMessage()}</div>
+{/if}
 
 <form method="get" class="filter-form">
 	<label for="type">Filter by activity type</label>
@@ -38,9 +53,26 @@
 	/>
 </section>
 
+{#if data.favoritedRoutes.length > 0}
+	<section class="route-section">
+		<h2>Gemerkte Routen</h2>
+		<RouteList
+			routes={data.favoritedRoutes}
+			showAdminActions={false}
+			showFavoriteButton={true}
+			isFavoritedList={true}
+		/>
+		<p class="hint">Gemerkte oeffentliche Routen anderer User.</p>
+	</section>
+{/if}
+
 <section class="route-section">
 	<h2>Oeffentliche Routen</h2>
-	<RouteList routes={data.publicRoutes} showAdminActions={false} />
+	<RouteList
+		routes={data.publicRoutes}
+		showAdminActions={false}
+		showFavoriteButton={true}
+	/>
 	<p class="hint">Oeffentliche Routen sind nur lesbar.</p>
 </section>
 
@@ -60,6 +92,19 @@
 		color: #fff;
 		text-decoration: none;
 		font-weight: 600;
+	}
+
+	.feedback-message {
+		padding: 0.75rem 1rem;
+		border-radius: 8px;
+		margin-bottom: 1rem;
+		font-weight: 500;
+	}
+
+	.feedback-message.success {
+		background: #dcfce7;
+		color: #166534;
+		border: 1px solid #86efac;
 	}
 
 	.filter-form {

@@ -2,6 +2,8 @@
 	export let routes = [];
 	export let showAdminActions = false;
 	export let deleteAction = "?/deleteRoute";
+	export let showFavoriteButton = false;
+	export let isFavoritedList = false;
 </script>
 
 {#if routes.length === 0}
@@ -16,7 +18,7 @@
 					<th>Region</th>
 					<th>Distance (km)</th>
 					<th>Difficulty</th>
-					{#if showAdminActions}
+					{#if showAdminActions || showFavoriteButton}
 						<th aria-hidden="true"></th>
 					{/if}
 				</tr>
@@ -43,6 +45,20 @@
 										>Delete</button
 									>
 								</form>
+							</td>
+						{:else if showFavoriteButton}
+							<td>
+								{#if route.isFavorited || isFavoritedList}
+									<form method="post" action="?/removeFavorite">
+										<input type="hidden" name="routeId" value={route.id} />
+										<button type="submit" class="fav-button remove">Entfernen</button>
+									</form>
+								{:else}
+									<form method="post" action="?/addFavorite">
+										<input type="hidden" name="routeId" value={route.id} />
+										<button type="submit" class="fav-button add">Merken</button>
+									</form>
+								{/if}
 							</td>
 						{/if}
 					</tr>
@@ -107,6 +123,33 @@
 
 	.danger-button:hover {
 		background: #b71c1c;
+	}
+
+	.fav-button {
+		border: none;
+		border-radius: 6px;
+		padding: 0.35rem 0.75rem;
+		font-size: 0.85rem;
+		cursor: pointer;
+		font-weight: 500;
+	}
+
+	.fav-button.add {
+		background: #0a5eb7;
+		color: #fff;
+	}
+
+	.fav-button.add:hover {
+		background: #084a93;
+	}
+
+	.fav-button.remove {
+		background: #64748b;
+		color: #fff;
+	}
+
+	.fav-button.remove:hover {
+		background: #475569;
 	}
 
 	.empty-message {

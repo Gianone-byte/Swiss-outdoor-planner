@@ -13,15 +13,28 @@ export async function load(event) {
 
 	const db = await getDb();
 	const routesCol = db.collection('routes');
+	const favoritesCol = db.collection('route_favorites');
 	const routeId = new ObjectId(id);
 	const routeDoc = await routesCol.findOne({ _id: routeId });
 	if (!routeDoc) {
 		throw error(404, 'Route not found');
 	}
-	if (routeDoc.ownerId && !routeDoc.ownerId.equals(userId)) {
-		throw redirect(303, '/feed');
+
+	const isOwner = routeDoc.ownerId ? routeDoc.ownerId.equals(userId) : true;
+	const visibility = routeDoc.visibility ?? 'private';
+
+	// Allow access if owner OR if route is public and favorited by user
+	if (!isOwner) {
+		if (visibility !== 'public') {
+			throw redirect(303, '/feed');
+		}
+		const favoriteDoc = await favoritesCol.findOne({ userId, routeId });
+		if (!favoriteDoc) {
+			throw redirect(303, '/feed');
+		}
 	}
-	if (!routeDoc.ownerId) {
+
+	if (!routeDoc.ownerId && isOwner) {
 		// Dev convenience: claim legacy routes without ownerId for the current user.
 		await routesCol.updateOne({ _id: routeId }, { $set: { ownerId: userId } });
 	}
@@ -47,12 +60,28 @@ export const actions = {
 
 		const db = await getDb();
 		const routesCol = db.collection('routes');
+		const favoritesCol = db.collection('route_favorites');
 		const routeId = new ObjectId(params.id);
 		const routeDoc = await routesCol.findOne({ _id: routeId });
-		if (!routeDoc || (routeDoc.ownerId && !routeDoc.ownerId.equals(userId))) {
-			return fail(403, { message: 'Not authorized to log activity for this route.' });
+		if (!routeDoc) {
+			return fail(404, { message: 'Route not found.' });
 		}
-		if (!routeDoc.ownerId) {
+
+		const isOwner = routeDoc.ownerId ? routeDoc.ownerId.equals(userId) : true;
+		const visibility = routeDoc.visibility ?? 'private';
+
+		// Allow if owner OR if route is public and favorited by user
+		if (!isOwner) {
+			if (visibility !== 'public') {
+				return fail(403, { message: 'Not authorized to log activity for this route.' });
+			}
+			const favoriteDoc = await favoritesCol.findOne({ userId, routeId });
+			if (!favoriteDoc) {
+				return fail(403, { message: 'You must save this route to your favorites first.' });
+			}
+		}
+
+		if (!routeDoc.ownerId && isOwner) {
 			// Dev convenience: claim legacy routes without ownerId for the current user.
 			await routesCol.updateOne({ _id: routeId }, { $set: { ownerId: userId } });
 		}

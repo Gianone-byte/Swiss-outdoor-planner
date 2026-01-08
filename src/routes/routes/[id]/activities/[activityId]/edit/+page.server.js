@@ -28,10 +28,16 @@ export async function load(event) {
 	if (!routeDoc) {
 		throw error(404, 'Route not found');
 	}
-	if (routeDoc.ownerId && !routeDoc.ownerId.equals(userId)) {
+
+	const isOwner = routeDoc.ownerId ? routeDoc.ownerId.equals(userId) : true;
+	const visibility = routeDoc.visibility ?? 'private';
+
+	// Allow access if route is public (activity ownership is checked below)
+	if (!isOwner && visibility !== 'public') {
 		throw redirect(303, '/feed');
 	}
-	if (!routeDoc.ownerId) {
+
+	if (!routeDoc.ownerId && isOwner) {
 		// Dev convenience: claim legacy routes without ownerId for the current user.
 		await routesCol.updateOne({ _id: routeId }, { $set: { ownerId: userId } });
 	}
@@ -79,14 +85,21 @@ export const actions = {
 
 		const db = await getDb();
 		const routesCol = db.collection('routes');
+		const activitiesCol = db.collection('activities');
 		const routeId = new ObjectId(id);
 		const routeDoc = await routesCol.findOne({ _id: routeId });
-		if (!routeDoc || (routeDoc.ownerId && !routeDoc.ownerId.equals(userId))) {
-			return fail(403, { message: 'Not authorized to update this activity.' });
+		if (!routeDoc) {
+			return fail(404, { message: 'Route not found.' });
 		}
-		if (!routeDoc.ownerId) {
-			// Dev convenience: claim legacy routes without ownerId for the current user.
-			await routesCol.updateOne({ _id: routeId }, { $set: { ownerId: userId } });
+
+		// Check if user owns this activity
+		const activityDoc = await activitiesCol.findOne({
+			_id: new ObjectId(activityId),
+			routeId,
+			$or: [{ userId }, { userId: { $exists: false } }]
+		});
+		if (!activityDoc) {
+			return fail(403, { message: 'Not authorized to update this activity.' });
 		}
 
 		const formData = await request.formData();

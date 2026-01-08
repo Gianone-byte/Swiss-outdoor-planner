@@ -16,6 +16,17 @@
 				? form.values?.difficulty ?? data.route.difficulty
 				: data.route.difficulty
 	};
+
+	// Feedback message for favorites
+	let feedbackMessage = $derived(() => {
+		if (form?.success && form?.action === 'addFavorite') {
+			return form.alreadyFavorited ? 'Route war bereits gemerkt.' : 'Route gemerkt!';
+		}
+		if (form?.success && form?.action === 'removeFavorite') {
+			return 'Route aus Favoriten entfernt.';
+		}
+		return null;
+	});
 </script>
 
 <section class="route-card">
@@ -25,6 +36,9 @@
 		<p class="muted">{data.route.region} · {data.route.type}</p>
 		{#if isReadOnly}
 			<p class="readonly">Nur lesen</p>
+		{/if}
+		{#if feedbackMessage()}
+			<div class="feedback-message success">{feedbackMessage()}</div>
 		{/if}
 		{#if data.route.swisstopoUrl || data.route.gpx}
 			<div class="route-links">
@@ -63,6 +77,19 @@
 			<form method="post" action="?/deleteRoute">
 				<button type="submit" class="danger">Delete route</button>
 			</form>
+		</div>
+	{:else if data.route.visibility === 'public'}
+		<div class="actions">
+			{#if data.isFavorited}
+				<a class="primary" href={`/routes/${data.route.id}/activities/new`}>Log activity</a>
+				<form method="post" action="?/removeFavorite">
+					<button type="submit" class="fav-button remove">Aus Favoriten entfernen</button>
+				</form>
+			{:else}
+				<form method="post" action="?/addFavorite">
+					<button type="submit" class="fav-button add">Route merken</button>
+				</form>
+			{/if}
 		</div>
 	{/if}
 </section>
@@ -104,14 +131,14 @@
 <section class="activities">
 	<div class="section-head">
 		<h2>Activities for this route</h2>
-		{#if isOwner}
+		{#if isOwner || data.isFavorited}
 			<a href={`/routes/${data.route.id}/activities/new`}>+ Log activity</a>
 		{/if}
 	</div>
 	<ActivityList
 		activities={data.activities}
 		showRouteInfo={false}
-		showAdminActions={isOwner}
+		showAdminActions={true}
 		deleteAction="?/deleteActivity"
 	/>
 </section>
@@ -144,6 +171,19 @@
 		color: #0b5fad;
 		font-weight: 600;
 		margin: 0.35rem 0 0;
+	}
+
+	.feedback-message {
+		padding: 0.6rem 1rem;
+		border-radius: 8px;
+		margin: 0.75rem 0;
+		font-weight: 500;
+	}
+
+	.feedback-message.success {
+		background: #dcfce7;
+		color: #166534;
+		border: 1px solid #86efac;
 	}
 
 	.route-links {
@@ -208,6 +248,32 @@
 		border-radius: 10px;
 		cursor: pointer;
 		font-weight: 600;
+	}
+
+	.fav-button {
+		border: none;
+		border-radius: 10px;
+		padding: 0.7rem 1.2rem;
+		cursor: pointer;
+		font-weight: 600;
+	}
+
+	.fav-button.add {
+		background: #0a5eb7;
+		color: #fff;
+	}
+
+	.fav-button.add:hover {
+		background: #084a93;
+	}
+
+	.fav-button.remove {
+		background: #64748b;
+		color: #fff;
+	}
+
+	.fav-button.remove:hover {
+		background: #475569;
 	}
 
 	.admin-panel {

@@ -1,5 +1,5 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { getDb, ObjectId } from '$lib/server/db';
+import { getDb, ObjectId, ensureFavoritesIndex } from '$lib/server/db';
 import { requireUser } from '$lib/server/auth';
 
 const dateFormatter = new Intl.DateTimeFormat('de-CH', { dateStyle: 'medium' });
@@ -18,7 +18,11 @@ export async function load(event) {
 	const db = await getDb();
 	const routesCol = db.collection('routes');
 	const activitiesCol = db.collection('activities');
+	const favoritesCol = db.collection('route_favorites');
 	const _id = new ObjectId(id);
+
+	// Ensure favorites index
+	await ensureFavoritesIndex();
 
 	const routeDoc = await routesCol.findOne({ _id });
 	if (!routeDoc) {
@@ -35,9 +39,13 @@ export async function load(event) {
 		await routesCol.updateOne({ _id }, { $set: { ownerId: userId } });
 	}
 
-	const activityOwnerId = isOwner ? userId : routeDoc.ownerId;
+	// Check if route is favorited by current user
+	const favoriteDoc = await favoritesCol.findOne({ userId, routeId: _id });
+	const isFavorited = !!favoriteDoc;
+
+	// Show user's own activities for this route (whether owner or not)
 	const activitiesDocs = await activitiesCol
-		.find({ routeId: _id, userId: activityOwnerId })
+		.find({ routeId: _id, userId })
 		.sort({ date: -1, createdAt: -1 })
 		.toArray();
 
@@ -69,17 +77,15 @@ export async function load(event) {
 			imageUrls: doc.imageUrls ?? []
 		};
 
-		if (isOwner) {
-			return { ...base, editUrl: `/routes/${id}/activities/${doc._id.toString()}/edit` };
-		}
-
-		return base;
+		// User can always edit their own activities
+		return { ...base, editUrl: `/routes/${id}/activities/${doc._id.toString()}/edit` };
 	});
 
 	return {
 		route,
 		activities,
-		isOwner
+		isOwner,
+		isFavorited
 	};
 }
 
@@ -189,5 +195,67 @@ export const actions = {
 		});
 
 		throw redirect(303, `/routes/${params.id}`);
+	},
+
+	addFavorite: async (event) => {
+		await requireUser(event);
+		const { params } = event;
+		const userId = new ObjectId(event.locals.user._id);
+
+		if (!ObjectId.isValid(params.id)) {
+			throw error(404, 'Route not found');
+		}
+
+		const db = await getDb();
+		const routesCol = db.collection('routes');
+		const favoritesCol = db.collection('route_favorites');
+		const _id = new ObjectId(params.id);
+
+		// Check route exists and is public
+		const routeDoc = await routesCol.findOne({ _id });
+		if (!routeDoc) {
+			throw error(404, 'Route not found');
+		}
+		if (routeDoc.visibility !== 'public') {
+			return fail(403, { message: 'Only public routes can be favorited.' });
+		}
+		// Prevent favoriting own routes
+		if (routeDoc.ownerId && routeDoc.ownerId.equals(userId)) {
+			return fail(400, { message: 'Cannot favorite your own routes.' });
+		}
+
+		try {
+			await favoritesCol.insertOne({
+				userId,
+				routeId: _id,
+				createdAt: new Date()
+			});
+		} catch (err) {
+			// Duplicate key error (already favorited)
+			if (err.code === 11000) {
+				return { success: true, action: 'addFavorite', alreadyFavorited: true };
+			}
+			throw err;
+		}
+
+		return { success: true, action: 'addFavorite' };
+	},
+
+	removeFavorite: async (event) => {
+		await requireUser(event);
+		const { params } = event;
+		const userId = new ObjectId(event.locals.user._id);
+
+		if (!ObjectId.isValid(params.id)) {
+			throw error(404, 'Route not found');
+		}
+
+		const db = await getDb();
+		const favoritesCol = db.collection('route_favorites');
+		const _id = new ObjectId(params.id);
+
+		await favoritesCol.deleteOne({ userId, routeId: _id });
+
+		return { success: true, action: 'removeFavorite' };
 	}
 };

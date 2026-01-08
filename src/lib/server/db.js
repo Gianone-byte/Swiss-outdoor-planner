@@ -18,4 +18,14 @@ export async function getDb() {
 	return client.db(dbName);
 }
 
+/**
+ * Ensures the route_favorites collection has a unique index on (userId, routeId).
+ * Call once at startup or on first use.
+ */
+export async function ensureFavoritesIndex() {
+	const db = await getDb();
+	const favoritesCol = db.collection('route_favorites');
+	await favoritesCol.createIndex({ userId: 1, routeId: 1 }, { unique: true });
+}
+
 export { ObjectId };
