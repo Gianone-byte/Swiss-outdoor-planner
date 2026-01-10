@@ -137,6 +137,16 @@ export const actions = {
 
 		const imageUrls = [values.imageUrl1, values.imageUrl2, values.imageUrl3].filter((url) => url);
 
+		// Validate image URLs
+		if (imageUrls.length > 3) {
+			return fail(400, { errors: { images: 'Maximal 3 Bilder erlaubt.' }, values });
+		}
+		for (const url of imageUrls) {
+			if (typeof url !== 'string' || !url.startsWith('https://')) {
+				return fail(400, { errors: { images: 'Alle Bild-URLs müssen mit https:// beginnen.' }, values });
+			}
+		}
+
 		await db.collection('activities').updateOne(
 			{
 				_id: new ObjectId(activityId),

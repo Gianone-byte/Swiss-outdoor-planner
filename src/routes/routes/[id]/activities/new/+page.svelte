@@ -1,4 +1,6 @@
 <script>
+	import ImageUploader from '$lib/components/ImageUploader.svelte';
+
 	const { data, form } = $props();
 
 	const values = {
@@ -6,13 +8,20 @@
 		startTime: form?.values?.startTime ?? '',
 		durationMinutes: form?.values?.durationMinutes ?? '',
 		feeling: form?.values?.feeling ?? '3',
-		notes: form?.values?.notes ?? '',
-		imageUrl1: form?.values?.imageUrl1 ?? '',
-		imageUrl2: form?.values?.imageUrl2 ?? '',
-		imageUrl3: form?.values?.imageUrl3 ?? ''
+		notes: form?.values?.notes ?? ''
 	};
 
+	// Initialize image URLs from form values if present
+	let imageUrls = $state([
+		form?.values?.imageUrl1,
+		form?.values?.imageUrl2,
+		form?.values?.imageUrl3
+	].filter(url => url));
+
 	const errors = form?.errors ?? {};
+
+	// Check if there are pending uploads (to disable submit)
+	let isUploading = $state(false);
 </script>
 
 <section class="form-wrapper">
@@ -64,22 +73,11 @@
 			<textarea name="notes" rows="3">{values.notes}</textarea>
 		</label>
 
-		<div class="image-fields">
-			<label>
-				<span>Bild 1 (Link)</span>
-				<input type="url" name="imageUrl1" placeholder="https://..." value={values.imageUrl1} />
-			</label>
-			<label>
-				<span>Bild 2 (Link)</span>
-				<input type="url" name="imageUrl2" placeholder="https://..." value={values.imageUrl2} />
-			</label>
-			<label>
-				<span>Bild 3 (Link)</span>
-				<input type="url" name="imageUrl3" placeholder="https://..." value={values.imageUrl3} />
-			</label>
-		</div>
+		<ImageUploader bind:imageUrls={imageUrls} maxImages={3} />
 
-		<button type="submit">Aktivität speichern</button>
+		<button type="submit" disabled={isUploading}>
+			{isUploading ? 'Bilder werden hochgeladen...' : 'Aktivität speichern'}
+		</button>
 	</form>
 </section>
 
@@ -123,12 +121,6 @@
 		resize: vertical;
 	}
 
-	.image-fields {
-		display: grid;
-		gap: 0.75rem;
-		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-	}
-
 	button {
 		margin-top: 0.5rem;
 		border: none;
@@ -139,6 +131,11 @@
 		font-size: 1rem;
 		font-weight: 600;
 		cursor: pointer;
+	}
+
+	button:disabled {
+		background: #94a3b8;
+		cursor: not-allowed;
 	}
 
 	.error {

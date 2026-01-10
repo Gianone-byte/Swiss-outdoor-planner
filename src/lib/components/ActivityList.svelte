@@ -3,6 +3,11 @@
 	export let showRouteInfo = false;
 	export let showAdminActions = false;
 	export let deleteAction = '?/deleteActivity';
+
+	function handleImageError(e) {
+		e.target.style.display = 'none';
+		e.target.nextElementSibling.style.display = 'flex';
+	}
 </script>
 
 {#if activities.length === 0}
@@ -35,8 +40,20 @@
 					{/if}
 					{#if activity.imageUrls?.length}
 						<div class="activity-images">
-							{#each activity.imageUrls as url}
-								<img src={url} alt={`Activity image for ${activity.date}`} class="activity-image" />
+							{#each activity.imageUrls as url, index}
+								<div class="image-wrapper">
+									<img 
+										src={url} 
+										alt={`Aktivitätsbild ${index + 1} vom ${activity.date}`} 
+										class="activity-image"
+										loading="lazy"
+										on:error={handleImageError}
+									/>
+									<div class="image-error-fallback">
+										<span>📷</span>
+										<span>Bild nicht verfügbar</span>
+									</div>
+								</div>
 							{/each}
 						</div>
 					{/if}
@@ -160,23 +177,51 @@
 		font-size: 0.9rem;
 	}
 
+	.danger-button:hover {
+		background: #b71c1c;
+	}
+
 	.activity-images {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.75rem;
-		margin-top: 0.25rem;
+		margin-top: 0.75rem;
+	}
+
+	.image-wrapper {
+		position: relative;
+		width: 180px;
+		height: 140px;
 	}
 
 	.activity-image {
-		max-width: 180px;
-		max-height: 140px;
+		width: 100%;
+		height: 100%;
 		object-fit: cover;
 		border-radius: 8px;
 		border: 1px solid #ddd;
 	}
 
-	.danger-button:hover {
-		background: #b71c1c;
+	.image-error-fallback {
+		display: none;
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: #f1f5f9;
+		border-radius: 8px;
+		border: 1px solid #e2e8f0;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.25rem;
+		color: #64748b;
+		font-size: 0.75rem;
+	}
+
+	.image-error-fallback span:first-child {
+		font-size: 1.5rem;
 	}
 
 	.empty-message {

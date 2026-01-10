@@ -118,6 +118,17 @@ export const actions = {
 			errors.feeling = 'Feeling must be between 1 and 5.';
 		}
 
+		// Validate image URLs
+		if (imageUrls.length > 3) {
+			errors.images = 'Maximal 3 Bilder erlaubt.';
+		}
+		for (const url of imageUrls) {
+			if (typeof url !== 'string' || !url.startsWith('https://')) {
+				errors.images = 'Alle Bild-URLs müssen mit https:// beginnen.';
+				break;
+			}
+		}
+
 		if (Object.keys(errors).length > 0) {
 			return fail(400, { errors, values });
 		}

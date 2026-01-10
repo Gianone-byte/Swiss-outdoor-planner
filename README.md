@@ -30,6 +30,12 @@ npm install
 `.env` anlegen:
 ```
 MONGO_URI=dein-mongodb-connection-string
+
+# Cloudinary (für Bild-Uploads)
+CLOUDINARY_CLOUD_NAME=dein-cloud-name
+CLOUDINARY_API_KEY=dein-api-key
+CLOUDINARY_API_SECRET=dein-api-secret
+CLOUDINARY_FOLDER=swiss-outdoor-planner
 ```
 
 Dev-Server starten:
@@ -50,9 +56,38 @@ git push -u origin main
 ## Deployment (Netlify)
 1. Repository zu GitHub pushen.
 2. In Netlify ein neues Projekt aus dem GitHub-Repo erstellen.
-3. `MONGO_URI` im Netlify-Dashboard als Environment Variable setzen.
+3. Environment Variables im Netlify-Dashboard setzen:
+   - `MONGO_URI` - MongoDB Connection String
+   - `CLOUDINARY_CLOUD_NAME` - Cloudinary Cloud Name
+   - `CLOUDINARY_API_KEY` - Cloudinary API Key
+   - `CLOUDINARY_API_SECRET` - Cloudinary API Secret
+   - `CLOUDINARY_FOLDER` - Ordner für Uploads (z.B. `swiss-outdoor-planner`)
 4. Build-Befehl: `npm run build`
 5. Publish-Verzeichnis: `build`
+- ~~Direkte Bild-Uploads statt Verlinkungen.~~ ✅ Implementiert mit Cloudinary
+## Bilder hochladen (Cloudinary)
+
+Die App unterstützt direkte Bild-Uploads zu Cloudinary beim Erstellen und Bearbeiten von Aktivitäten.
+
+### Setup
+1. Erstelle einen kostenlosen Account bei [Cloudinary](https://cloudinary.com/).
+2. Gehe zum [Cloudinary Dashboard](https://console.cloudinary.com/) und kopiere:
+   - **Cloud Name** (z.B. `dxxxxxxx`)
+   - **API Key** (z.B. `123456789012345`)
+   - **API Secret** (z.B. `abcdefghijklmnopqrstuvwxyz`)
+3. Trage diese Werte in deine `.env` Datei ein.
+
+### Features
+- **Drag & Drop**: Bilder direkt in die Drop-Zone ziehen.
+- **Dateiauswahl**: Klassischer "Dateien auswählen"-Button.
+- **URL-Eingabe**: Optional können auch externe Bild-URLs hinzugefügt werden.
+- **Vorschau**: Thumbnails werden sofort angezeigt.
+- **Validierung**: Max. 3 Bilder pro Aktivität, nur JPG/PNG/WebP, max. 5 MB pro Bild.
+
+### Sicherheit
+- **Signed Uploads**: Der Cloudinary API Secret bleibt auf dem Server.
+- **Validierung**: Server-seitige Prüfung aller URLs (müssen mit `https://` beginnen).
+- **Kein Base64**: Bilder werden direkt zu Cloudinary hochgeladen, nicht in MongoDB gespeichert.
 
 ## Erweiterungsideen
 - Weitere Filter oder Sortierungen (z. B. Distanz, Schwierigkeit, Region).

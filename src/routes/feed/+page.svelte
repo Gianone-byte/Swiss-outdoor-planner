@@ -66,8 +66,20 @@
 
 					{#if activity.imageUrls?.length}
 						<div class="activity-images">
-							{#each activity.imageUrls as url}
-								<img src={url} alt="Activity" class="activity-image" />
+							{#each activity.imageUrls as url, index}
+								<div class="image-wrapper">
+									<img 
+										src={url} 
+										alt={`Aktivitätsbild ${index + 1}`} 
+										class="activity-image"
+										loading="lazy"
+										onerror={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'flex'; }}
+									/>
+									<div class="image-error-fallback">
+										<span>📷</span>
+										<span>Nicht verfügbar</span>
+									</div>
+								</div>
 							{/each}
 						</div>
 					{/if}
@@ -272,12 +284,40 @@
 		margin-top: 0.5rem;
 	}
 
+	.image-wrapper {
+		position: relative;
+		width: 180px;
+		height: 140px;
+	}
+
 	.activity-image {
-		max-width: 180px;
-		max-height: 140px;
+		width: 100%;
+		height: 100%;
 		object-fit: cover;
 		border-radius: 10px;
 		border: 1px solid #e2e8f0;
+	}
+
+	.image-error-fallback {
+		display: none;
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: #f1f5f9;
+		border-radius: 10px;
+		border: 1px solid #e2e8f0;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.25rem;
+		color: #64748b;
+		font-size: 0.7rem;
+	}
+
+	.image-error-fallback span:first-child {
+		font-size: 1.25rem;
 	}
 
 	@media (max-width: 600px) {
