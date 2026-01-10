@@ -6,18 +6,18 @@
 
 <section class="auth-card">
 	<h1>Log in</h1>
-	<p>Welcome back. Pick up where you left off on your Swiss adventures.</p>
+	<p>Willkommen zurück. Mach weiter wo du aufgehört hast.</p>
 
 	<form method="post" class="auth-form">
 		<label>
-			<span>Email</span>
+			<span>E-Mail</span>
 			<input type="email" name="email" required value={values.email ?? ''} />
 			{#if errors.email}
 				<span class="error">{errors.email}</span>
 			{/if}
 		</label>
 		<label>
-			<span>Password</span>
+			<span>Passwort</span>
 			<input type="password" name="password" required />
 			{#if errors.password}
 				<span class="error">{errors.password}</span>
@@ -29,7 +29,7 @@
 		<button type="submit">Log in</button>
 	</form>
 	<p class="auth-switch">
-		New here? <a href="/register">Create an account</a>.
+		Neu hier? <a href="/register">Konto erstellen</a>.
 	</p>
 </section>
 

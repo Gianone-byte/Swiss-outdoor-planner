@@ -79,32 +79,32 @@
 </section>
 
 <section class="profile stats-section">
-	<h2>Activity Statistiken</h2>
+	<h2>Aktivitäts-Statistiken</h2>
 	<p>Übersicht über deine geloggten Aktivitäten.</p>
 
 	<div class="cards">
 		<div class="card">
-			<p>Total activities</p>
+			<p>Aktivitäten total</p>
 			<strong>{data.stats.totalActivities}</strong>
 		</div>
 		<div class="card">
-			<p>Activities with images</p>
+			<p>Aktivitäten mit Bildern</p>
 			<strong>{data.stats.activitiesWithImages}</strong>
 		</div>
 		<div class="card">
-			<p>Activities without images</p>
+			<p>Aktivitäten ohne Bilder</p>
 			<strong>{data.stats.activitiesWithoutImages}</strong>
 		</div>
 	</div>
 
 	<div class="breakdown">
-		<h2>Distance & duration by type</h2>
+		<h2>Distanz & Dauer nach Typ</h2>
 		<table>
 			<thead>
 				<tr>
-					<th>Type</th>
-					<th>Total distance (km)</th>
-					<th>Total duration (min)</th>
+					<th>Typ</th>
+					<th>Gesamtdistanz (km)</th>
+					<th>Gesamtdauer (min)</th>
 				</tr>
 			</thead>
 			<tbody>

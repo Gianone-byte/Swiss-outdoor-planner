@@ -16,15 +16,15 @@
 </script>
 
 <section class="form-wrapper">
-	<p class="back-link"><a href={`/routes/${data.route.id}`}>← Back to route</a></p>
-	<h1>Log an activity</h1>
+	<p class="back-link"><a href={`/routes/${data.route.id}`}>← Zurück zur Route</a></p>
+	<h1>Aktivität loggen</h1>
 	<p>
 		Route: <strong>{data.route.title}</strong> ({data.route.type} · {data.route.region})
 	</p>
 
 	<form method="post" class="activity-form">
 		<label>
-			<span>Date *</span>
+			<span>Datum *</span>
 			<input type="date" name="date" required value={values.date} />
 			{#if errors.date}
 				<span class="error">{errors.date}</span>
@@ -32,7 +32,7 @@
 		</label>
 
 		<label>
-			<span>Start time *</span>
+			<span>Startzeit *</span>
 			<input type="time" name="startTime" required value={values.startTime} />
 			{#if errors.startTime}
 				<span class="error">{errors.startTime}</span>
@@ -40,7 +40,7 @@
 		</label>
 
 		<label>
-			<span>Duration (minutes) *</span>
+			<span>Dauer (Minuten) *</span>
 			<input type="number" name="durationMinutes" min="1" required value={values.durationMinutes} />
 			{#if errors.durationMinutes}
 				<span class="error">{errors.durationMinutes}</span>
@@ -48,7 +48,7 @@
 		</label>
 
 		<label>
-			<span>Feeling (1–5) *</span>
+			<span>Gefühl (1–5) *</span>
 			<select name="feeling" required>
 				{#each ['1', '2', '3', '4', '5'] as option}
 					<option value={option} selected={values.feeling === option}>{option}</option>
@@ -60,7 +60,7 @@
 		</label>
 
 		<label>
-			<span>Notes</span>
+			<span>Notizen</span>
 			<textarea name="notes" rows="3">{values.notes}</textarea>
 		</label>
 
@@ -79,7 +79,7 @@
 			</label>
 		</div>
 
-		<button type="submit">Save activity</button>
+		<button type="submit">Aktivität speichern</button>
 	</form>
 </section>
 

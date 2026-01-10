@@ -5,19 +5,19 @@
 </script>
 
 <section class="auth-card">
-	<h1>Create account</h1>
-	<p>Start planning routes and logging your outdoor activities in minutes.</p>
+	<h1>Konto erstellen</h1>
+	<p>Beginne in wenigen Minuten Routen zu planen und Aktivitäten zu loggen.</p>
 
 	<form method="post" class="auth-form">
 		<label>
-			<span>Email</span>
+			<span>E-Mail</span>
 			<input type="email" name="email" required value={values.email ?? ''} />
 			{#if errors.email}
 				<span class="error">{errors.email}</span>
 			{/if}
 		</label>
 		<label>
-			<span>Username</span>
+			<span>Benutzername</span>
 			<input type="text" name="username" required value={values.username ?? ''} />
 			{#if errors.username}
 				<span class="error">{errors.username}</span>
@@ -28,16 +28,16 @@
 			<input type="url" name="avatarUrl" value={values.avatarUrl ?? ''} />
 		</label>
 		<label>
-			<span>Password</span>
+			<span>Passwort</span>
 			<input type="password" name="password" required />
 			{#if errors.password}
 				<span class="error">{errors.password}</span>
 			{/if}
 		</label>
-		<button type="submit">Create account</button>
+		<button type="submit">Konto erstellen</button>
 	</form>
 	<p class="auth-switch">
-		Already have an account? <a href="/login">Log in</a>.
+		Schon ein Konto? <a href="/login">Log in</a>.
 	</p>
 </section>
 

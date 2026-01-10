@@ -3,9 +3,9 @@
 
 	const links = [
 		{ href: '/feed', label: 'Feed' },
-		{ href: '/routes', label: 'Routes' },
-		{ href: '/activities', label: 'Activities' },
-		{ href: '/profile', label: 'Profile' }
+		{ href: '/routes', label: 'Routen' },
+		{ href: '/activities', label: 'Aktivitäten' },
+		{ href: '/profile', label: 'Profil' }
 	];
 
 	$: pathname = $page.url.pathname;
@@ -18,7 +18,7 @@
 		<div class="logo">⛰️</div>
 		<div>
 			<p class="title">Swiss Outdoor Planner</p>
-			<p class="subtitle">Plan routes · Log activities · Track progress</p>
+			<p class="subtitle">Routen entdecken, teilen und draussen erleben.</p>
 		</div>
 	</div>
 	{#if user}
@@ -41,7 +41,7 @@
 	{:else}
 		<nav class="nav auth-links">
 			<a href="/login" class:selected={pathname === '/login'}>Log in</a>
-			<a href="/register" class:selected={pathname === '/register'}>Register</a>
+			<a href="/register" class:selected={pathname === '/register'}>Registrieren</a>
 		</nav>
 	{/if}
 </header>

@@ -4,10 +4,10 @@
 	const { data, form } = $props();
 	let selectedType = data.currentType;
 	const typeOptions = [
-		{ label: 'All', value: 'all' },
-		{ label: 'Hike', value: 'hike' },
-		{ label: 'Run', value: 'run' },
-		{ label: 'Bike', value: 'bike' }
+		{ label: 'Alle', value: 'all' },
+		{ label: 'Wanderung', value: 'hike' },
+		{ label: 'Lauf', value: 'run' },
+		{ label: 'Velo', value: 'bike' }
 	];
 
 	// Feedback message for favorites
@@ -24,10 +24,10 @@
 
 <section class="header-row">
 	<div>
-		<h1>Saved routes</h1>
-		<p>Filter, explore, and open any route to log your latest activity.</p>
+		<h1>Gespeicherte Routen</h1>
+		<p>Filtern, entdecken und Aktivitäten auf deinen Routen loggen.</p>
 	</div>
-	<a class="primary" href="/routes/new">+ New route</a>
+	<a class="primary" href="/routes/new">+ Neue Route</a>
 </section>
 
 {#if feedbackMessage()}
@@ -35,13 +35,13 @@
 {/if}
 
 <form method="get" class="filter-form">
-	<label for="type">Filter by activity type</label>
+	<label for="type">Nach Aktivitätstyp filtern</label>
 	<select id="type" name="type" bind:value={selectedType}>
 		{#each typeOptions as option}
 			<option value={option.value}>{option.label}</option>
 		{/each}
 	</select>
-	<button type="submit">Apply</button>
+	<button type="submit">Anwenden</button>
 </form>
 
 <section class="route-section">

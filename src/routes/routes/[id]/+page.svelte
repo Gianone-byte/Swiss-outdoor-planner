@@ -31,7 +31,7 @@
 
 <section class="route-card">
 	<div>
-		<p class="back-link"><a href="/routes">← Back to routes</a></p>
+		<p class="back-link"><a href="/routes">← Zurück zu Routen</a></p>
 		<h1>{data.route.title}</h1>
 		<p class="muted">{data.route.region} · {data.route.type}</p>
 		{#if isReadOnly}
@@ -62,26 +62,26 @@
 		<ul class="stats">
 			<li><strong>{data.route.distanceKm}</strong><span>km</span></li>
 			{#if data.route.elevationGain !== undefined && data.route.elevationGain !== null}
-				<li><strong>{data.route.elevationGain}</strong><span>m gain</span></li>
+				<li><strong>{data.route.elevationGain}</strong><span>m Höhenmeter</span></li>
 			{/if}
-			<li><strong>{data.route.difficulty}</strong><span>difficulty</span></li>
+			<li><strong>{data.route.difficulty}</strong><span>Schwierigkeit</span></li>
 			{#if isOwner}
-				<li><strong>{data.route.visibility}</strong><span>visibility</span></li>
+				<li><strong>{data.route.visibility}</strong><span>Sichtbarkeit</span></li>
 			{/if}
-			<li><strong>{data.route.createdAt}</strong><span>created</span></li>
+			<li><strong>{data.route.createdAt}</strong><span>erstellt</span></li>
 		</ul>
 	</div>
 	{#if isOwner}
 		<div class="actions">
-			<a class="primary" href={`/routes/${data.route.id}/activities/new`}>Log activity</a>
+			<a class="primary" href={`/routes/${data.route.id}/activities/new`}>Aktivität loggen</a>
 			<form method="post" action="?/deleteRoute">
-				<button type="submit" class="danger">Delete route</button>
+				<button type="submit" class="danger">Route löschen</button>
 			</form>
 		</div>
 	{:else if data.route.visibility === 'public'}
 		<div class="actions">
 			{#if data.isFavorited}
-				<a class="primary" href={`/routes/${data.route.id}/activities/new`}>Log activity</a>
+				<a class="primary" href={`/routes/${data.route.id}/activities/new`}>Aktivität loggen</a>
 				<form method="post" action="?/removeFavorite">
 					<button type="submit" class="fav-button remove">Aus Favoriten entfernen</button>
 				</form>
@@ -96,10 +96,10 @@
 
 {#if isOwner}
 	<section class="admin-panel">
-		<h2>Edit route basics</h2>
+		<h2>Route bearbeiten</h2>
 		<form method="post" action="?/updateRoute" class="inline-form">
 			<label>
-				<span>Distance (km)</span>
+				<span>Distanz (km)</span>
 				<input
 					type="number"
 					name="distanceKm"
@@ -113,26 +113,26 @@
 				{/if}
 			</label>
 			<label>
-				<span>Difficulty</span>
+				<span>Schwierigkeit</span>
 				<select name="difficulty" required>
-					<option value="easy" selected={updateValues.difficulty === 'easy'}>Easy</option>
-					<option value="medium" selected={updateValues.difficulty === 'medium'}>Medium</option>
-					<option value="hard" selected={updateValues.difficulty === 'hard'}>Hard</option>
+					<option value="easy" selected={updateValues.difficulty === 'easy'}>Einfach</option>
+					<option value="medium" selected={updateValues.difficulty === 'medium'}>Mittel</option>
+					<option value="hard" selected={updateValues.difficulty === 'hard'}>Schwer</option>
 				</select>
 				{#if updateErrors.difficulty}
 					<span class="error">{updateErrors.difficulty}</span>
 				{/if}
 			</label>
-			<button type="submit">Save changes</button>
+			<button type="submit">Änderungen speichern</button>
 		</form>
 	</section>
 {/if}
 
 <section class="activities">
 	<div class="section-head">
-		<h2>Activities for this route</h2>
+		<h2>Aktivitäten auf dieser Route</h2>
 		{#if isOwner || data.isFavorited}
-			<a href={`/routes/${data.route.id}/activities/new`}>+ Log activity</a>
+			<a href={`/routes/${data.route.id}/activities/new`}>+ Aktivität loggen</a>
 		{/if}
 	</div>
 	<ActivityList

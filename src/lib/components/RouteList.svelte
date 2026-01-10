@@ -7,17 +7,17 @@
 </script>
 
 {#if routes.length === 0}
-	<p class="empty-message">No routes saved yet.</p>
+	<p class="empty-message">Noch keine Routen gespeichert.</p>
 {:else}
 	<div class="table-wrapper">
 		<table>
 			<thead>
 				<tr>
-					<th>Title</th>
-					<th>Type</th>
+					<th>Titel</th>
+					<th>Typ</th>
 					<th>Region</th>
-					<th>Distance (km)</th>
-					<th>Difficulty</th>
+					<th>Distanz (km)</th>
+					<th>Schwierigkeit</th>
 					{#if showAdminActions || showFavoriteButton}
 						<th aria-hidden="true"></th>
 					{/if}

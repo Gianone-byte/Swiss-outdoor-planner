@@ -16,12 +16,12 @@
 </script>
 
 <section class="form-wrapper">
-	<h1>Create a new route</h1>
-	<p>Define the key information about your Swiss adventure before logging activities.</p>
+	<h1>Neue Route erstellen</h1>
+	<p>Definiere die wichtigsten Informationen für dein Schweizer Abenteuer.</p>
 
 	<form method="post" class="route-form" enctype="multipart/form-data">
 		<label>
-			<span>Title *</span>
+			<span>Titel *</span>
 			<input type="text" name="title" required value={values.title} />
 			{#if errors.title}
 				<span class="error">{errors.title}</span>
@@ -29,11 +29,11 @@
 		</label>
 
 		<label>
-			<span>Type *</span>
+			<span>Typ *</span>
 			<select name="type" required>
-				<option value="hike" selected={values.type === 'hike'}>Hike</option>
-				<option value="run" selected={values.type === 'run'}>Run</option>
-				<option value="bike" selected={values.type === 'bike'}>Bike</option>
+				<option value="hike" selected={values.type === 'hike'}>Wanderung</option>
+				<option value="run" selected={values.type === 'run'}>Lauf</option>
+				<option value="bike" selected={values.type === 'bike'}>Velo</option>
 			</select>
 			{#if errors.type}
 				<span class="error">{errors.type}</span>
@@ -49,7 +49,7 @@
 		</label>
 
 		<label>
-			<span>Distance (km) *</span>
+			<span>Distanz (km) *</span>
 			<input type="number" name="distanceKm" min="0" step="0.1" required value={values.distanceKm} />
 			{#if errors.distanceKm}
 				<span class="error">{errors.distanceKm}</span>
@@ -57,7 +57,7 @@
 		</label>
 
 		<label>
-			<span>Elevation gain (m)</span>
+			<span>Höhenmeter (m)</span>
 			<input type="number" name="elevationGain" min="0" step="1" value={values.elevationGain} />
 			{#if errors.elevationGain}
 				<span class="error">{errors.elevationGain}</span>
@@ -65,11 +65,11 @@
 		</label>
 
 		<label>
-			<span>Difficulty *</span>
+			<span>Schwierigkeit *</span>
 			<select name="difficulty" required>
-				<option value="easy" selected={values.difficulty === 'easy'}>Easy</option>
-				<option value="medium" selected={values.difficulty === 'medium'}>Medium</option>
-				<option value="hard" selected={values.difficulty === 'hard'}>Hard</option>
+				<option value="easy" selected={values.difficulty === 'easy'}>Einfach</option>
+				<option value="medium" selected={values.difficulty === 'medium'}>Mittel</option>
+				<option value="hard" selected={values.difficulty === 'hard'}>Schwer</option>
 			</select>
 			{#if errors.difficulty}
 				<span class="error">{errors.difficulty}</span>
@@ -77,10 +77,10 @@
 		</label>
 
 		<label class="visibility">
-			<span>Route öffentlich machen</span>
+			<span>Sichtbarkeit</span>
 			<select name="visibility">
-				<option value="private" selected={values.visibility === 'private'}>Private</option>
-				<option value="public" selected={values.visibility === 'public'}>Public</option>
+				<option value="private" selected={values.visibility === 'private'}>Privat</option>
+				<option value="public" selected={values.visibility === 'public'}>Öffentlich</option>
 			</select>
 		</label>
 
@@ -104,7 +104,7 @@
 			{/if}
 		</label>
 
-		<button type="submit">Save route</button>
+		<button type="submit">Route speichern</button>
 	</form>
 </section>
 

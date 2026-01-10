@@ -6,7 +6,7 @@
 </script>
 
 {#if activities.length === 0}
-	<p class="empty-message">No activities logged yet.</p>
+	<p class="empty-message">Noch keine Aktivitäten geloggt.</p>
 {:else}
 	<ul class="activity-list">
 		{#each activities as activity}
@@ -43,12 +43,12 @@
 				</div>
 				<div class="actions">
 					{#if activity.editUrl}
-						<a class="edit-button" href={activity.editUrl}>Edit</a>
+						<a class="edit-button" href={activity.editUrl}>Bearbeiten</a>
 					{/if}
 					{#if showAdminActions}
 						<form method="post" action={deleteAction}>
 							<input type="hidden" name="activityId" value={activity.id} />
-							<button type="submit" class="danger-button">Delete</button>
+							<button type="submit" class="danger-button">Löschen</button>
 						</form>
 					{/if}
 				</div>

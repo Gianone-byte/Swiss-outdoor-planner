@@ -1,4 +1,4 @@
-<p class="redirecting">Redirecting to feed...</p>
+<p class="redirecting">Weiterleitung zum Feed...</p>
 
 <style>
 	.redirecting {

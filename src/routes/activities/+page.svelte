@@ -4,30 +4,30 @@
 	const { data } = $props();
 	let selectedType = data.typeFilter;
 	const typeOptions = [
-		{ label: 'All routes', value: 'all' },
-		{ label: 'Hike', value: 'hike' },
-		{ label: 'Run', value: 'run' },
-		{ label: 'Bike', value: 'bike' }
+		{ label: 'Alle Routen', value: 'all' },
+		{ label: 'Wanderung', value: 'hike' },
+		{ label: 'Lauf', value: 'run' },
+		{ label: 'Velo', value: 'bike' }
 	];
 </script>
 
 <section class="header-row">
 	<div>
-		<h1>Activities overview</h1>
-		<p>Every logged outing stays here with quick stats and photos.</p>
+		<h1>Aktivitäten Übersicht</h1>
+		<p>Alle geloggten Ausflüge mit Statistiken und Fotos.</p>
 	</div>
 </section>
 
 <form method="get" class="filter-form">
 	<label>
-		<span>Filter by route type</span>
+		<span>Nach Routentyp filtern</span>
 		<select name="type" bind:value={selectedType}>
 			{#each typeOptions as option}
 				<option value={option.value}>{option.label}</option>
 			{/each}
 		</select>
 	</label>
-	<button type="submit">Apply filter</button>
+	<button type="submit">Filter anwenden</button>
 </form>
 
 <ActivityList activities={data.activities} showRouteInfo={true} />
