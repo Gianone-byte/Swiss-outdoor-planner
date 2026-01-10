@@ -44,8 +44,11 @@
 							{#if activity.routeRegion}
 								<span class="badge region">{activity.routeRegion}</span>
 							{/if}
-							<span class="badge distance">{activity.routeDistanceKm} km</span>
-						</div>
+							<span class="badge distance">{activity.routeDistanceKm} km</span>						{#if activity.hasGpx && activity.canViewRoute}
+							<a href={`/routes/${activity.routeId}`} class="badge gpx-preview" title="Route auf Karte ansehen">
+								🗺️ Kartenvorschau
+							</a>
+						{/if}						</div>
 					</div>
 
 					<div class="activity-stats">
@@ -246,6 +249,19 @@
 	.badge.distance {
 		background: #e0f2fe;
 		color: #0284c7;
+	}
+
+	.badge.gpx-preview {
+		background: #fef3c7;
+		color: #b45309;
+		text-decoration: none;
+		cursor: pointer;
+		transition: background 0.15s ease, transform 0.1s ease;
+	}
+
+	.badge.gpx-preview:hover {
+		background: #fde68a;
+		transform: scale(1.02);
 	}
 
 	.activity-stats {

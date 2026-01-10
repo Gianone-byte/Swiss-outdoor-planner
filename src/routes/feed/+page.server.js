@@ -50,6 +50,9 @@ export async function load(event) {
 			? route.visibility === 'public' || (route.ownerId && route.ownerId.equals(userId))
 			: false;
 
+		// Check if route has GPX data
+		const hasGpx = !!(route?.gpx?.contentBase64);
+
 		return {
 			id: doc._id.toString(),
 			routeId: doc.routeId?.toString(),
@@ -57,6 +60,7 @@ export async function load(event) {
 			routeType: route?.type ?? 'unknown',
 			routeRegion: route?.region ?? '',
 			routeDistanceKm: route?.distanceKm ?? 0,
+			hasGpx,
 			canViewRoute,
 			date: doc.date ? dateFormatter.format(doc.date) : 'No date',
 			startTime: doc.startTime ?? '',
