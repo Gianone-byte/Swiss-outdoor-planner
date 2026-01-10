@@ -1,5 +1,8 @@
 <script>
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	import ActivityList from '$lib/components/ActivityList.svelte';
+	import MapPreview from '$lib/components/MapPreview.svelte';
 
 	const { data, form } = $props();
 	const isOwner = data.isOwner;
@@ -26,6 +29,19 @@
 			return 'Route aus Favoriten entfernt.';
 		}
 		return null;
+	});
+
+	// Scroll to map if URL hash is #karte
+	onMount(() => {
+		if (browser && window.location.hash === '#karte') {
+			const mapSection = document.getElementById('karte');
+			if (mapSection) {
+				// Small delay to ensure map is rendered
+				setTimeout(() => {
+					mapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				}, 100);
+			}
+		}
 	});
 </script>
 
@@ -93,6 +109,40 @@
 		</div>
 	{/if}
 </section>
+
+<!-- Map Preview Section -->
+{#if data.hasGpx}
+	<section class="map-section" id="karte">
+		<div class="map-header">
+			<h2>🗺️ Kartenvorschau</h2>
+			{#if data.route.gpx}
+				<span class="gpx-status">GPX verfügbar</span>
+			{/if}
+		</div>
+		{#if data.gpxPoints && data.gpxPoints.length > 0}
+			<MapPreview 
+				points={data.gpxPoints} 
+				bounds={data.gpxBounds}
+			/>
+			<div class="map-actions">
+				{#if data.route.swisstopoUrl}
+					<a class="map-link" href={data.route.swisstopoUrl} target="_blank" rel="noopener">
+						🔗 In Swisstopo öffnen
+					</a>
+				{/if}
+				{#if data.route.gpx}
+					<a class="map-link" href={`/routes/${data.route.id}/gpx`} download>
+						⬇️ GPX herunterladen
+					</a>
+				{/if}
+			</div>
+		{:else}
+			<div class="map-unavailable">
+				<p>Kartenvorschau nicht verfügbar.</p>
+			</div>
+		{/if}
+	</section>
+{/if}
 
 {#if isOwner}
 	<section class="admin-panel">
@@ -336,5 +386,74 @@
 		text-decoration: none;
 		color: #0a5eb7;
 		font-weight: 600;
+	}
+
+	/* Map Preview Styles */
+	.map-section {
+		margin-top: 2rem;
+		background: #fff;
+		padding: 1.5rem;
+		border-radius: 16px;
+		box-shadow: 0 6px 20px rgba(5, 43, 86, 0.08);
+	}
+
+	.map-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1rem;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.map-header h2 {
+		margin: 0;
+		font-size: 1.25rem;
+	}
+
+	.gpx-status {
+		background: #dcfce7;
+		color: #166534;
+		padding: 0.3rem 0.75rem;
+		border-radius: 999px;
+		font-size: 0.8rem;
+		font-weight: 500;
+	}
+
+	.map-actions {
+		display: flex;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		margin-top: 1rem;
+	}
+
+	.map-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		padding: 0.5rem 1rem;
+		background: #f1f5f9;
+		color: #334155;
+		text-decoration: none;
+		border-radius: 8px;
+		font-size: 0.9rem;
+		font-weight: 500;
+		transition: background 0.15s ease;
+	}
+
+	.map-link:hover {
+		background: #e2e8f0;
+	}
+
+	.map-unavailable {
+		background: #fef3c7;
+		color: #92400e;
+		padding: 1rem;
+		border-radius: 10px;
+		text-align: center;
+	}
+
+	.map-unavailable p {
+		margin: 0;
 	}
 </style>

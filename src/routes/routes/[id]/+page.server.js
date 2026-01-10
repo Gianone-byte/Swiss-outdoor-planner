@@ -5,6 +5,65 @@ import { requireUser } from '$lib/server/auth';
 const dateFormatter = new Intl.DateTimeFormat('de-CH', { dateStyle: 'medium' });
 const allowedDifficulties = ['easy', 'medium', 'hard'];
 
+/**
+ * Parse GPX XML and extract track points
+ * @param {string} gpxXml - The GPX XML string
+ * @param {number} maxPoints - Maximum number of points to return (for downsampling)
+ * @returns {{ points: Array<{lat: number, lng: number}>, bounds: { minLat: number, minLng: number, maxLat: number, maxLng: number } } | null}
+ */
+function parseGpxPoints(gpxXml, maxPoints = 2000) {
+	try {
+		// Simple XML parsing for track points (trkpt) and route points (rtept)
+		const points = [];
+		
+		// Match both <trkpt> and <rtept> elements with lat/lon attributes
+		const pointRegex = /<(?:trkpt|rtept)\s+lat=["']([^"']+)["']\s+lon=["']([^"']+)["'][^>]*>/gi;
+		let match;
+		
+		while ((match = pointRegex.exec(gpxXml)) !== null) {
+			const lat = parseFloat(match[1]);
+			const lng = parseFloat(match[2]);
+			if (!isNaN(lat) && !isNaN(lng)) {
+				points.push({ lat, lng });
+			}
+		}
+		
+		if (points.length === 0) {
+			return null;
+		}
+		
+		// Downsample if too many points
+		let sampledPoints = points;
+		if (points.length > maxPoints) {
+			const step = Math.ceil(points.length / maxPoints);
+			sampledPoints = points.filter((_, index) => index % step === 0);
+			// Always include the last point
+			if (sampledPoints[sampledPoints.length - 1] !== points[points.length - 1]) {
+				sampledPoints.push(points[points.length - 1]);
+			}
+		}
+		
+		// Calculate bounds
+		let minLat = Infinity, maxLat = -Infinity;
+		let minLng = Infinity, maxLng = -Infinity;
+		
+		for (const p of sampledPoints) {
+			if (p.lat < minLat) minLat = p.lat;
+			if (p.lat > maxLat) maxLat = p.lat;
+			if (p.lng < minLng) minLng = p.lng;
+			if (p.lng > maxLng) maxLng = p.lng;
+		}
+		
+		return {
+			points: sampledPoints,
+			bounds: { minLat, minLng, maxLat, maxLng }
+		};
+	} catch (err) {
+		console.error('Error parsing GPX:', err);
+		return null;
+	}
+}
+
 export async function load(event) {
 	await requireUser(event);
 	const { params } = event;
@@ -42,6 +101,30 @@ export async function load(event) {
 	// Check if route is favorited by current user
 	const favoriteDoc = await favoritesCol.findOne({ userId, routeId: _id });
 	const isFavorited = !!favoriteDoc;
+
+	// Check if user can view route (owner or public)
+	const canViewRoute = isOwner || visibility === 'public';
+
+	// Parse GPX data if available and user has permission
+	let hasGpx = false;
+	let gpxPoints = null;
+	let gpxBounds = null;
+
+	if (canViewRoute && routeDoc.gpx?.contentBase64) {
+		hasGpx = true;
+		try {
+			// Decode base64 to XML string
+			const gpxXml = Buffer.from(routeDoc.gpx.contentBase64, 'base64').toString('utf-8');
+			const parsed = parseGpxPoints(gpxXml);
+			if (parsed) {
+				gpxPoints = parsed.points;
+				gpxBounds = parsed.bounds;
+			}
+		} catch (err) {
+			console.error('Error decoding GPX:', err);
+			// hasGpx stays true but points remain null
+		}
+	}
 
 	// Show user's own activities for this route (whether owner or not)
 	const activitiesDocs = await activitiesCol
@@ -85,7 +168,10 @@ export async function load(event) {
 		route,
 		activities,
 		isOwner,
-		isFavorited
+		isFavorited,
+		hasGpx,
+		gpxPoints,
+		gpxBounds
 	};
 }
 
