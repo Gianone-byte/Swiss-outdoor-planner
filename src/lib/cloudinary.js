@@ -1,18 +1,6 @@
-/**
- * Cloudinary Upload Helper
- * 
- * Handles secure client-side uploads to Cloudinary using signed uploads.
- * The signature is obtained from the server to keep the API secret secure.
- */
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
-/**
- * Validates a file before upload
- * @param {File} file - The file to validate
- * @returns {{ valid: boolean, error?: string }}
- */
 export function validateFile(file) {
 	if (!file || !(file instanceof File)) {
 		return { valid: false, error: 'Ungültige Datei' };
@@ -29,21 +17,14 @@ export function validateFile(file) {
 	return { valid: true };
 }
 
-/**
- * Uploads a file to Cloudinary using signed upload
- * @param {File} file - The file to upload
- * @param {(progress: number) => void} [onProgress] - Progress callback (0-100)
- * @returns {Promise<{ success: boolean, url?: string, error?: string }>}
- */
 export async function uploadToCloudinary(file, onProgress) {
-	// Validate file first
 	const validation = validateFile(file);
 	if (!validation.valid) {
 		return { success: false, error: validation.error };
 	}
 
 	try {
-		// Get signature from server
+		
 		const signResponse = await fetch('/api/cloudinary/sign', {
 			method: 'POST',
 			credentials: 'include'
@@ -57,7 +38,7 @@ export async function uploadToCloudinary(file, onProgress) {
 
 		const { timestamp, signature, apiKey, cloudName, folder } = await signResponse.json();
 
-		// Build form data for Cloudinary upload
+		
 		const formData = new FormData();
 		formData.append('file', file);
 		formData.append('api_key', apiKey);
@@ -65,10 +46,10 @@ export async function uploadToCloudinary(file, onProgress) {
 		formData.append('signature', signature);
 		formData.append('folder', folder);
 
-		// Upload to Cloudinary with progress tracking
+	
 		const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
-		// Use XMLHttpRequest for progress tracking
+		
 		const result = await new Promise((resolve, reject) => {
 			const xhr = new XMLHttpRequest();
 

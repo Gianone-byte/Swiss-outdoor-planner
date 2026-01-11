@@ -7,7 +7,6 @@ export async function load(event) {
 	const db = await getDb();
 	const userId = new ObjectId(event.locals.user._id);
 
-	// Get user data
 	const usersCol = db.collection('users');
 	const userDoc = await usersCol.findOne({ _id: userId });
 
@@ -70,12 +69,10 @@ export const actions = {
 
 		const errors = {};
 
-		// Validate username
 		if (username && (username.length < 3 || username.length > 30)) {
 			errors.username = 'Username muss zwischen 3 und 30 Zeichen lang sein.';
 		}
 
-		// Validate avatarUrl
 		if (avatarUrl && !avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://')) {
 			errors.avatarUrl = 'Avatar URL muss mit http:// oder https:// beginnen.';
 		}

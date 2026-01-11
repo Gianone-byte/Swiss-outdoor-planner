@@ -14,10 +14,8 @@ export async function load(event) {
 	const routesCol = db.collection('routes');
 	const usersCol = db.collection('users');
 
-	// Get current user profile
 	const currentUser = await usersCol.findOne({ _id: userId });
 	
-	// Get current user's activities for stats
 	const userActivityDocs = await activitiesCol.find({ userId }).toArray();
 	const userRouteIds = [...new Set(userActivityDocs.map((a) => a.routeId?.toString()).filter(Boolean))];
 	let userRouteMap = new Map();
@@ -28,7 +26,6 @@ export async function load(event) {
 		userRouteMap = new Map(userRouteDocs.map((route) => [route._id.toString(), route]));
 	}
 
-	// Calculate user stats
 	const userStats = {
 		totalActivities: userActivityDocs.length,
 		distanceByType: { hike: 0, run: 0, bike: 0 },
@@ -45,18 +42,15 @@ export async function load(event) {
 		}
 	}
 
-	// Get last 20 activities from all users
 	const activityDocs = await activitiesCol
 		.find({})
 		.sort({ createdAt: -1 })
 		.limit(20)
 		.toArray();
 
-	// Collect unique route IDs and user IDs
 	const routeIds = [...new Set(activityDocs.map((a) => a.routeId?.toString()).filter(Boolean))];
 	const userIds = [...new Set(activityDocs.map((a) => a.userId?.toString()).filter(Boolean))];
 
-	// Fetch routes
 	let routeMap = new Map();
 	if (routeIds.length) {
 		const routeDocs = await routesCol
@@ -65,7 +59,6 @@ export async function load(event) {
 		routeMap = new Map(routeDocs.map((route) => [route._id.toString(), route]));
 	}
 
-	// Fetch users
 	let userMap = new Map();
 	if (userIds.length) {
 		const userDocs = await usersCol
@@ -78,12 +71,10 @@ export async function load(event) {
 		const route = doc.routeId ? routeMap.get(doc.routeId.toString()) : null;
 		const activityUser = doc.userId ? userMap.get(doc.userId.toString()) : null;
 
-		// Can view route if public OR if current user is owner
 		const canViewRoute = route
 			? route.visibility === 'public' || (route.ownerId && route.ownerId.equals(userId))
 			: false;
 
-		// Check if route has GPX data and parse it
 		const hasGpx = !!(route?.gpx?.contentBase64);
 		let gpxPreview = null;
 		if (hasGpx && canViewRoute) {
@@ -112,7 +103,6 @@ export async function load(event) {
 			feeling: doc.feeling ?? 0,
 			notes: doc.notes ?? '',
 			imageUrls: doc.imageUrls ?? [],
-			// User info
 			user: {
 				username: activityUser?.username ?? null,
 				avatarUrl: activityUser?.avatarUrl ?? null,

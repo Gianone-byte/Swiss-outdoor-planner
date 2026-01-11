@@ -1,5 +1,6 @@
 <script>
 	import { page } from '$app/stores';
+	import sopLogo from '$lib/assets/sop_logo_left.svg';
 
 	$: pathname = $page.url.pathname;
 	$: user = $page.data.user;
@@ -15,7 +16,7 @@
 
 <header class="app-header">
 	<div class="brand">
-		<div class="logo">⛰️</div>
+		<img src={sopLogo} alt="Swiss Outdoor Planner" class="logo" />
 		<div>
 			<p class="title">Swiss Outdoor Planner</p>
 			<p class="subtitle">Routen entdecken, teilen und draussen erleben.</p>
@@ -58,7 +59,10 @@
 	}
 
 	.logo {
-		font-size: 2.25rem;
+		height: 6rem;
+		width: auto;
+		filter: brightness(0) invert(1);
+		margin: -2rem 0;
 	}
 
 	.title {

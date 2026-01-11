@@ -32,13 +32,11 @@ export async function load(event) {
 	const isOwner = routeDoc.ownerId ? routeDoc.ownerId.equals(userId) : true;
 	const visibility = routeDoc.visibility ?? 'private';
 
-	// Allow access if route is public (activity ownership is checked below)
 	if (!isOwner && visibility !== 'public') {
 		throw redirect(303, '/feed');
 	}
 
 	if (!routeDoc.ownerId && isOwner) {
-		// Dev convenience: claim legacy routes without ownerId for the current user.
 		await routesCol.updateOne({ _id: routeId }, { $set: { ownerId: userId } });
 	}
 
@@ -92,7 +90,6 @@ export const actions = {
 			return fail(404, { message: 'Route not found.' });
 		}
 
-		// Check if user owns this activity
 		const activityDoc = await activitiesCol.findOne({
 			_id: new ObjectId(activityId),
 			routeId,
@@ -137,7 +134,6 @@ export const actions = {
 
 		const imageUrls = [values.imageUrl1, values.imageUrl2, values.imageUrl3].filter((url) => url);
 
-		// Validate image URLs
 		if (imageUrls.length > 3) {
 			return fail(400, { errors: { images: 'Maximal 3 Bilder erlaubt.' }, values });
 		}

@@ -21,7 +21,6 @@ export async function load(event) {
 	const routesCol = db.collection('routes');
 	const favoritesCol = db.collection('route_favorites');
 
-	// Ensure unique index on favorites
 	await ensureFavoritesIndex();
 
 	const typeFilter = typeParam === 'all' ? {} : { type: typeParam };
@@ -42,7 +41,6 @@ export async function load(event) {
 		ownerId: { $ne: userId, $exists: true }
 	};
 
-	// Get user's favorites
 	const userFavorites = await favoritesCol.find({ userId }).toArray();
 	const favoriteRouteIds = userFavorites.map((f) => f.routeId);
 
@@ -51,7 +49,6 @@ export async function load(event) {
 		routesCol.find(publicRoutesFilter).sort({ createdAt: -1 }).toArray()
 	]);
 
-	// Get favorited routes that are still public (and not owned by user) with filters
 	const favoritedRoutesFilter = {
 		_id: { $in: favoriteRouteIds },
 		visibility: 'public',
@@ -67,7 +64,6 @@ export async function load(event) {
 
 	const legacyRouteIds = myRoutesDocs.filter((route) => !route.ownerId).map((route) => route._id);
 	if (legacyRouteIds.length) {
-		// Dev convenience: claim legacy routes without ownerId for the current user.
 		await routesCol.updateMany(
 			{ _id: { $in: legacyRouteIds } },
 			{ $set: { ownerId: userId } }
@@ -75,13 +71,12 @@ export async function load(event) {
 	}
 
 	const mapRoute = (route, isFavorited = false) => {
-		// Parse GPX if available
 		let gpxPreview = null;
 		const hasGpx = !!(route.gpx?.contentBase64);
 		if (hasGpx) {
 			try {
 				const gpxXml = Buffer.from(route.gpx.contentBase64, 'base64').toString('utf-8');
-				gpxPreview = parseGpxPoints(gpxXml, 500); // Lower points for list view
+				gpxPreview = parseGpxPoints(gpxXml, 500);
 			} catch (err) {
 				console.error('Error parsing GPX for route:', route._id, err);
 			}
@@ -101,7 +96,6 @@ export async function load(event) {
 		};
 	};
 
-	// Mark public routes as favorited if they are
 	const favoriteIdSet = new Set(favoriteRouteIds.map((id) => id.toString()));
 	const publicRoutesWithFavorites = publicRoutesDocs.map((route) =>
 		mapRoute(route, favoriteIdSet.has(route._id.toString()))
@@ -164,7 +158,6 @@ export const actions = {
 		const _id = new ObjectId(routeId);
 		const userId = new ObjectId(event.locals.user._id);
 
-		// Check route exists and is public
 		const routeDoc = await routesCol.findOne({ _id });
 		if (!routeDoc) {
 			return fail(404, { message: 'Route not found.' });
@@ -172,7 +165,6 @@ export const actions = {
 		if (routeDoc.visibility !== 'public') {
 			return fail(403, { message: 'Only public routes can be favorited.' });
 		}
-		// Prevent favoriting own routes
 		if (routeDoc.ownerId && routeDoc.ownerId.equals(userId)) {
 			return fail(400, { message: 'Cannot favorite your own routes.' });
 		}
@@ -184,7 +176,6 @@ export const actions = {
 				createdAt: new Date()
 			});
 		} catch (err) {
-			// Duplicate key error (already favorited)
 			if (err.code === 11000) {
 				return { success: true, action: 'addFavorite', alreadyFavorited: true };
 			}

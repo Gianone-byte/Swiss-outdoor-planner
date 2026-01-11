@@ -35,7 +35,6 @@ export async function load(event) {
 		.map((doc) => {
 			const route = routeMap.get(doc.routeId?.toString());
 			
-			// Parse GPX if available
 			let gpxPreview = null;
 			const hasGpx = !!(route?.gpx?.contentBase64);
 			if (hasGpx) {

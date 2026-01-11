@@ -28,7 +28,6 @@ export async function GET(event) {
 	}
 
 	if (!routeDoc.ownerId && isOwner) {
-		// Dev convenience: claim legacy routes without ownerId for the current user.
 		await routesCol.updateOne({ _id }, { $set: { ownerId: userId } });
 	}
 

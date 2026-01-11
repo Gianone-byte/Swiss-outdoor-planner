@@ -23,7 +23,6 @@ export async function load(event) {
 	const isOwner = routeDoc.ownerId ? routeDoc.ownerId.equals(userId) : true;
 	const visibility = routeDoc.visibility ?? 'private';
 
-	// Allow access if owner OR if route is public and favorited by user
 	if (!isOwner) {
 		if (visibility !== 'public') {
 			throw redirect(303, '/feed');
@@ -35,7 +34,6 @@ export async function load(event) {
 	}
 
 	if (!routeDoc.ownerId && isOwner) {
-		// Dev convenience: claim legacy routes without ownerId for the current user.
 		await routesCol.updateOne({ _id: routeId }, { $set: { ownerId: userId } });
 	}
 
@@ -70,7 +68,6 @@ export const actions = {
 		const isOwner = routeDoc.ownerId ? routeDoc.ownerId.equals(userId) : true;
 		const visibility = routeDoc.visibility ?? 'private';
 
-		// Allow if owner OR if route is public and favorited by user
 		if (!isOwner) {
 			if (visibility !== 'public') {
 				return fail(403, { message: 'Not authorized to log activity for this route.' });
@@ -82,7 +79,6 @@ export const actions = {
 		}
 
 		if (!routeDoc.ownerId && isOwner) {
-			// Dev convenience: claim legacy routes without ownerId for the current user.
 			await routesCol.updateOne({ _id: routeId }, { $set: { ownerId: userId } });
 		}
 
@@ -120,7 +116,6 @@ export const actions = {
 
 		// Validate image URLs
 		if (imageUrls.length > 3) {
-			errors.images = 'Maximal 3 Bilder erlaubt.';
 		}
 		for (const url of imageUrls) {
 			if (typeof url !== 'string' || !url.startsWith('https://')) {
