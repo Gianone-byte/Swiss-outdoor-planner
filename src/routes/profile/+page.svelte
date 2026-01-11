@@ -1,4 +1,6 @@
 <script>
+	import ImageUploader from '$lib/components/ImageUploader.svelte';
+
 	const { data, form } = $props();
 	const typeEntries = Object.keys(data.stats.distanceByType).map((type) => ({
 		type,
@@ -12,6 +14,14 @@
 		avatarUrl: form?.values?.avatarUrl ?? data.profile.avatarUrl ?? ''
 	};
 	const errors = form?.errors ?? {};
+
+	// Initialize avatar URL array for ImageUploader (max 1 image)
+	let avatarUrls = $state(
+		profileValues.avatarUrl ? [profileValues.avatarUrl] : []
+	);
+
+	// Track if upload is in progress
+	let isUploading = $state(false);
 
 	// Feedback message
 	let feedbackMessage = $derived(() => {
@@ -53,27 +63,18 @@
 				{/if}
 			</label>
 
-			<label>
-				<span>Avatar URL</span>
-				<input
-					type="url"
-					name="avatarUrl"
-					value={profileValues.avatarUrl}
-					placeholder="https://example.com/avatar.jpg"
-				/>
+			<div class="avatar-upload-section">
+				<span class="label">Profilbild</span>
+				<ImageUploader bind:imageUrls={avatarUrls} maxImages={1} />
+				<input type="hidden" name="avatarUrl" value={avatarUrls[0] ?? ''} />
 				{#if errors.avatarUrl}
 					<span class="error">{errors.avatarUrl}</span>
 				{/if}
-			</label>
+			</div>
 
-			{#if profileValues.avatarUrl}
-				<div class="avatar-preview">
-					<span>Vorschau:</span>
-					<img src={profileValues.avatarUrl} alt="Avatar Vorschau" />
-				</div>
-			{/if}
-
-			<button type="submit">Speichern</button>
+			<button type="submit" disabled={isUploading}>
+				{isUploading ? 'Bild wird hochgeladen...' : 'Speichern'}
+			</button>
 		</form>
 	</div>
 </section>
@@ -188,22 +189,14 @@
 		font-weight: 400;
 	}
 
-	.avatar-preview {
+	.avatar-upload-section {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
 	}
 
-	.avatar-preview span {
+	.avatar-upload-section .label {
 		font-weight: 600;
-	}
-
-	.avatar-preview img {
-		width: 80px;
-		height: 80px;
-		border-radius: 50%;
-		object-fit: cover;
-		border: 2px solid #e2e8f0;
 	}
 
 	.profile-form button {

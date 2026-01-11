@@ -1,4 +1,6 @@
 <script>
+	import MapPreview from '$lib/components/MapPreview.svelte';
+
 	const { data } = $props();
 </script>
 
@@ -41,14 +43,14 @@
 						{/if}
 						<div class="route-meta">
 							<span class="badge type">{activity.routeType}</span>
-							{#if activity.routeRegion}
-								<span class="badge region">{activity.routeRegion}</span>
+							{#if activity.routeKanton}
+								<span class="badge region">{activity.routeKanton}</span>
 							{/if}
-							<span class="badge distance">{activity.routeDistanceKm} km</span>						{#if activity.hasGpx && activity.canViewRoute}
-							<a href={`/routes/${activity.routeId}#karte`} class="badge gpx-preview" title="Route auf Karte ansehen">
-								🗺️ Kartenvorschau
-							</a>
-						{/if}						</div>
+							{#if activity.routeOrt}
+								<span class="badge ort">{activity.routeOrt}</span>
+							{/if}
+							<span class="badge distance">{activity.routeDistanceKm} km</span>
+						</div>
 					</div>
 
 					<div class="activity-stats">
@@ -65,6 +67,15 @@
 
 					{#if activity.notes}
 						<p class="notes">{activity.notes}</p>
+					{/if}
+
+					{#if activity.gpxPreview}
+						<div class="map-preview-container">
+							<MapPreview 
+								points={activity.gpxPreview.points} 
+								bounds={activity.gpxPreview.bounds}
+							/>
+						</div>
 					{/if}
 
 					{#if activity.imageUrls?.length}
@@ -251,17 +262,16 @@
 		color: #0284c7;
 	}
 
-	.badge.gpx-preview {
+	.badge.ort {
 		background: #fef3c7;
-		color: #b45309;
-		text-decoration: none;
-		cursor: pointer;
-		transition: background 0.15s ease, transform 0.1s ease;
+		color: #92400e;
 	}
 
-	.badge.gpx-preview:hover {
-		background: #fde68a;
-		transform: scale(1.02);
+	.map-preview-container {
+		height: 200px;
+		border-radius: 10px;
+		overflow: hidden;
+		margin-top: 0.5rem;
 	}
 
 	.activity-stats {

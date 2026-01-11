@@ -27,8 +27,9 @@
 		<h1>Gespeicherte Routen</h1>
 		<p>Filtern, entdecken und Aktivitäten auf deinen Routen loggen.</p>
 	</div>
-	<a class="primary" href="/routes/new">+ Neue Route</a>
 </section>
+
+<a class="new-route-btn" href="/routes/new">+ Neue Route</a>
 
 {#if feedbackMessage()}
 	<div class="feedback-message success">{feedbackMessage()}</div>
@@ -78,20 +79,24 @@
 
 <style>
 	.header-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 1rem;
-		margin-bottom: 1.5rem;
+		margin-bottom: 1rem;
 	}
 
-	.primary {
+	.new-route-btn {
+		display: inline-block;
 		padding: 0.75rem 1.2rem;
 		border-radius: 10px;
 		background: #0a5eb7;
 		color: #fff;
 		text-decoration: none;
 		font-weight: 600;
+		margin-bottom: 1rem;
+		margin-left: auto;
+		float: right;
+	}
+
+	.new-route-btn:hover {
+		background: #084a93;
 	}
 
 	.feedback-message {
@@ -117,6 +122,7 @@
 		padding: 1rem;
 		border-radius: 10px;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+		clear: both;
 	}
 
 	label {

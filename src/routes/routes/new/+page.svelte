@@ -1,10 +1,19 @@
 <script>
 	const { form } = $props();
 
+	const kantone = [
+		'Aargau', 'Appenzell Ausserrhoden', 'Appenzell Innerrhoden', 'Basel-Landschaft',
+		'Basel-Stadt', 'Bern', 'Freiburg', 'Genf', 'Glarus', 'Graubünden', 'Jura',
+		'Luzern', 'Neuenburg', 'Nidwalden', 'Obwalden', 'Schaffhausen', 'Schwyz',
+		'Solothurn', 'St. Gallen', 'Tessin', 'Thurgau', 'Uri', 'Waadt', 'Wallis',
+		'Zug', 'Zürich'
+	];
+
 	const values = {
 		title: form?.values?.title ?? '',
 		type: form?.values?.type ?? 'hike',
-		region: form?.values?.region ?? '',
+		kanton: form?.values?.kanton ?? '',
+		ort: form?.values?.ort ?? '',
 		distanceKm: form?.values?.distanceKm ?? '',
 		elevationGain: form?.values?.elevationGain ?? '',
 		difficulty: form?.values?.difficulty ?? 'medium',
@@ -41,10 +50,23 @@
 		</label>
 
 		<label>
-			<span>Region *</span>
-			<input type="text" name="region" required value={values.region} />
-			{#if errors.region}
-				<span class="error">{errors.region}</span>
+			<span>Kanton *</span>
+			<select name="kanton" required>
+				<option value="" disabled selected={!values.kanton}>Kanton auswählen...</option>
+				{#each kantone as k}
+					<option value={k} selected={values.kanton === k}>{k}</option>
+				{/each}
+			</select>
+			{#if errors.kanton}
+				<span class="error">{errors.kanton}</span>
+			{/if}
+		</label>
+
+		<label>
+			<span>Ort</span>
+			<input type="text" name="ort" value={values.ort} placeholder="z.B. Zermatt, Interlaken..." />
+			{#if errors.ort}
+				<span class="error">{errors.ort}</span>
 			{/if}
 		</label>
 

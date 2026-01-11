@@ -1,5 +1,7 @@
 import { getDb, ObjectId } from '$lib/server/db';
 import { requireUser } from '$lib/server/auth';
+import { parseGpxPoints } from '$lib/server/gpxParser';
+import { Buffer } from 'node:buffer';
 
 const dateFormatter = new Intl.DateTimeFormat('de-CH', { dateStyle: 'medium' });
 const allowedTypes = ['all', 'hike', 'run', 'bike'];
@@ -32,16 +34,32 @@ export async function load(event) {
 	const activities = activitiesDocs
 		.map((doc) => {
 			const route = routeMap.get(doc.routeId?.toString());
+			
+			// Parse GPX if available
+			let gpxPreview = null;
+			const hasGpx = !!(route?.gpx?.contentBase64);
+			if (hasGpx) {
+				try {
+					const gpxXml = Buffer.from(route.gpx.contentBase64, 'base64').toString('utf-8');
+					gpxPreview = parseGpxPoints(gpxXml, 300);
+				} catch (err) {
+					console.error('Error parsing GPX for activity:', err);
+				}
+			}
+
 			return {
 				id: doc._id.toString(),
 				routeId: doc.routeId?.toString(),
 				routeTitle: route?.title ?? 'Unknown route',
 				routeType: route?.type ?? 'unknown',
 				canViewRoute: true,
+				hasGpx,
+				gpxPreview,
 				date: doc.date ? dateFormatter.format(doc.date) : 'No date',
 				startTime: doc.startTime ?? '',
 				durationMinutes: doc.durationMinutes ?? 0,
 				feeling: doc.feeling ?? 0,
+				notes: doc.notes ?? '',
 				imageUrls: doc.imageUrls ?? []
 			};
 		})

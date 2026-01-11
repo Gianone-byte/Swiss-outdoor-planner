@@ -1,4 +1,6 @@
 <script>
+	import MapPreview from '$lib/components/MapPreview.svelte';
+
 	export let activities = [];
 	export let showRouteInfo = false;
 	export let showAdminActions = false;
@@ -25,7 +27,7 @@
 					</div>
 					<div class="badges">
 						<span class="badge mood">Feeling {activity.feeling}/5</span>
-						<span class="badge duration">{activity.durationMinutes} min</span>
+						<span class="badge duration">{activity.durationMinutes} Min</span>
 						{#if showRouteInfo}
 							<span class="badge type">{activity.routeType}</span>
 							{#if activity.canViewRoute}
@@ -37,6 +39,14 @@
 					</div>
 					{#if activity.notes}
 						<p class="notes">{activity.notes}</p>
+					{/if}
+					{#if activity.gpxPreview}
+						<div class="map-preview-container">
+							<MapPreview 
+								points={activity.gpxPreview.points} 
+								bounds={activity.gpxPreview.bounds}
+							/>
+						</div>
 					{/if}
 					{#if activity.imageUrls?.length}
 						<div class="activity-images">
@@ -144,6 +154,17 @@
 	.notes {
 		margin: 0.4rem 0 0;
 		font-size: 0.95rem;
+		background: #f8fafc;
+		padding: 0.75rem;
+		border-radius: 8px;
+		border-left: 3px solid #0a5eb7;
+	}
+
+	.map-preview-container {
+		height: 200px;
+		border-radius: 10px;
+		overflow: hidden;
+		margin-top: 0.75rem;
 	}
 
 	.actions {

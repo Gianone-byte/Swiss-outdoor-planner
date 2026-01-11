@@ -49,7 +49,9 @@
 	<div>
 		<p class="back-link"><a href="/routes">← Zurück zu Routen</a></p>
 		<h1>{data.route.title}</h1>
-		<p class="muted">{data.route.region} · {data.route.type}</p>
+		<p class="muted">
+			{data.route.kanton}{#if data.route.ort}, {data.route.ort}{/if} · {data.route.type}
+		</p>
 		{#if isReadOnly}
 			<p class="readonly">Nur lesen</p>
 		{/if}

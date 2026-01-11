@@ -1,5 +1,7 @@
 import { getDb, ObjectId } from '$lib/server/db';
 import { requireUser } from '$lib/server/auth';
+import { parseGpxPoints } from '$lib/server/gpxParser';
+import { Buffer } from 'node:buffer';
 
 const dateFormatter = new Intl.DateTimeFormat('de-CH', { dateStyle: 'medium' });
 
@@ -50,17 +52,28 @@ export async function load(event) {
 			? route.visibility === 'public' || (route.ownerId && route.ownerId.equals(userId))
 			: false;
 
-		// Check if route has GPX data
+		// Check if route has GPX data and parse it
 		const hasGpx = !!(route?.gpx?.contentBase64);
+		let gpxPreview = null;
+		if (hasGpx && canViewRoute) {
+			try {
+				const gpxXml = Buffer.from(route.gpx.contentBase64, 'base64').toString('utf-8');
+				gpxPreview = parseGpxPoints(gpxXml, 300);
+			} catch (err) {
+				console.error('Error parsing GPX for feed:', err);
+			}
+		}
 
 		return {
 			id: doc._id.toString(),
 			routeId: doc.routeId?.toString(),
 			routeTitle: route?.title ?? 'Unknown route',
 			routeType: route?.type ?? 'unknown',
-			routeRegion: route?.region ?? '',
+			routeKanton: route?.kanton || route?.region || '',
+			routeOrt: route?.ort || '',
 			routeDistanceKm: route?.distanceKm ?? 0,
 			hasGpx,
+			gpxPreview,
 			canViewRoute,
 			date: doc.date ? dateFormatter.format(doc.date) : 'No date',
 			startTime: doc.startTime ?? '',

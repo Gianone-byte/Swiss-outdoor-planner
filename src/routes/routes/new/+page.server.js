@@ -5,6 +5,13 @@ import { Buffer } from 'node:buffer';
 
 const allowedTypes = ['hike', 'run', 'bike'];
 const allowedDifficulties = ['easy', 'medium', 'hard'];
+const allowedKantone = [
+	'Aargau', 'Appenzell Ausserrhoden', 'Appenzell Innerrhoden', 'Basel-Landschaft',
+	'Basel-Stadt', 'Bern', 'Freiburg', 'Genf', 'Glarus', 'Graubünden', 'Jura',
+	'Luzern', 'Neuenburg', 'Nidwalden', 'Obwalden', 'Schaffhausen', 'Schwyz',
+	'Solothurn', 'St. Gallen', 'Tessin', 'Thurgau', 'Uri', 'Waadt', 'Wallis',
+	'Zug', 'Zürich'
+];
 
 export async function load(event) {
 	await requireUser(event);
@@ -22,7 +29,8 @@ export const actions = {
 		const values = {
 			title: formData.get('title')?.trim() ?? '',
 			type: formData.get('type') ?? 'hike',
-			region: formData.get('region')?.trim() ?? '',
+			kanton: formData.get('kanton')?.trim() ?? '',
+			ort: formData.get('ort')?.trim() ?? '',
 			distanceKm: formData.get('distanceKm') ? Number(formData.get('distanceKm')) : NaN,
 			elevationGain: formData.get('elevationGain')
 				? Number(formData.get('elevationGain'))
@@ -33,23 +41,25 @@ export const actions = {
 		};
 
 		const errors = {};
-		if (!values.title) errors.title = 'Title is required.';
-		if (!allowedTypes.includes(values.type)) errors.type = 'Please select a route type.';
-		if (!values.region) errors.region = 'Region is required.';
+		if (!values.title) errors.title = 'Titel ist erforderlich.';
+		if (!allowedTypes.includes(values.type)) errors.type = 'Bitte Routentyp auswählen.';
+		if (!values.kanton || !allowedKantone.includes(values.kanton)) {
+			errors.kanton = 'Bitte Kanton auswählen.';
+		}
 		if (Number.isNaN(values.distanceKm) || values.distanceKm <= 0) {
-			errors.distanceKm = 'Distance must be a positive number.';
+			errors.distanceKm = 'Distanz muss eine positive Zahl sein.';
 		}
 		if (!allowedDifficulties.includes(values.difficulty)) {
-			errors.difficulty = 'Select a difficulty level.';
+			errors.difficulty = 'Bitte Schwierigkeitsgrad auswählen.';
 		}
 		if (
 			values.elevationGain !== undefined &&
 			(Number.isNaN(values.elevationGain) || values.elevationGain < 0)
 		) {
-			errors.elevationGain = 'Elevation gain must be zero or positive.';
+			errors.elevationGain = 'Höhenmeter müssen 0 oder positiv sein.';
 		}
 		if (values.swisstopoUrl && !/^https?:\/\//i.test(values.swisstopoUrl)) {
-			errors.swisstopoUrl = 'Swisstopo link must start with http:// or https://.';
+			errors.swisstopoUrl = 'Swisstopo-Link muss mit http:// oder https:// beginnen.';
 		}
 
 		let gpxData = null;
@@ -74,7 +84,8 @@ export const actions = {
 		const routeDoc = {
 			title: values.title,
 			type: values.type,
-			region: values.region,
+			kanton: values.kanton,
+			ort: values.ort || null,
 			distanceKm: values.distanceKm,
 			difficulty: values.difficulty,
 			visibility: values.visibility,

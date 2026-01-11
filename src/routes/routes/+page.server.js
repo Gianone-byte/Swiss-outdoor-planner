@@ -1,6 +1,8 @@
 import { fail } from '@sveltejs/kit';
 import { getDb, ObjectId, ensureFavoritesIndex } from '$lib/server/db';
 import { requireUser } from '$lib/server/auth';
+import { parseGpxPoints } from '$lib/server/gpxParser';
+import { Buffer } from 'node:buffer';
 
 const allowedTypes = ['all', 'hike', 'run', 'bike'];
 
@@ -56,15 +58,32 @@ export async function load(event) {
 		);
 	}
 
-	const mapRoute = (route, isFavorited = false) => ({
-		id: route._id.toString(),
-		title: route.title,
-		type: route.type,
-		region: route.region,
-		distanceKm: route.distanceKm,
-		difficulty: route.difficulty,
-		isFavorited
-	});
+	const mapRoute = (route, isFavorited = false) => {
+		// Parse GPX if available
+		let gpxPreview = null;
+		const hasGpx = !!(route.gpx?.contentBase64);
+		if (hasGpx) {
+			try {
+				const gpxXml = Buffer.from(route.gpx.contentBase64, 'base64').toString('utf-8');
+				gpxPreview = parseGpxPoints(gpxXml, 500); // Lower points for list view
+			} catch (err) {
+				console.error('Error parsing GPX for route:', route._id, err);
+			}
+		}
+
+		return {
+			id: route._id.toString(),
+			title: route.title,
+			type: route.type,
+			kanton: route.kanton || route.region || '',
+			ort: route.ort || '',
+			distanceKm: route.distanceKm,
+			difficulty: route.difficulty,
+			hasGpx,
+			gpxPreview,
+			isFavorited
+		};
+	};
 
 	// Mark public routes as favorited if they are
 	const favoriteIdSet = new Set(favoriteRouteIds.map((id) => id.toString()));

@@ -1,16 +1,16 @@
 <script>
 	import { page } from '$app/stores';
 
-	const links = [
+	$: pathname = $page.url.pathname;
+	$: user = $page.data.user;
+	$: profileLabel = user?.username || 'Profil';
+
+	$: links = [
 		{ href: '/feed', label: 'Feed' },
 		{ href: '/routes', label: 'Routen' },
 		{ href: '/activities', label: 'Aktivitäten' },
-		{ href: '/profile', label: 'Profil' }
+		{ href: '/profile', label: profileLabel }
 	];
-
-	$: pathname = $page.url.pathname;
-	$: user = $page.data.user;
-	$: displayName = user?.username || user?.email?.split('@')[0] || 'User';
 </script>
 
 <header class="app-header">
@@ -28,12 +28,6 @@
 					{link.label}
 				</a>
 			{/each}
-			<div class="user-info">
-				{#if user.avatarUrl}
-					<img src={user.avatarUrl} alt="Avatar" class="user-avatar" />
-				{/if}
-				<span class="user-name">{displayName}</span>
-			</div>
 			<form method="post" action="/logout" class="logout-form">
 				<button type="submit">Log out</button>
 			</form>
@@ -113,29 +107,6 @@
 
 	.logout-form button:hover {
 		background: rgba(255, 255, 255, 0.3);
-	}
-
-	.user-info {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.25rem 0.6rem;
-		background: rgba(255, 255, 255, 0.1);
-		border-radius: 999px;
-	}
-
-	.user-avatar {
-		width: 28px;
-		height: 28px;
-		border-radius: 50%;
-		object-fit: cover;
-		border: 2px solid rgba(255, 255, 255, 0.5);
-	}
-
-	.user-name {
-		font-size: 0.9rem;
-		color: #fff;
-		font-weight: 500;
 	}
 
 	@media (max-width: 900px) {
