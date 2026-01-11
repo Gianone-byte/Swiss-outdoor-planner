@@ -5,14 +5,17 @@ import { parseGpxPoints } from '$lib/server/gpxParser';
 import { Buffer } from 'node:buffer';
 
 const allowedTypes = ['all', 'hike', 'run', 'bike'];
+const allowedDifficulties = ['all', 'easy', 'medium', 'hard'];
 
 export async function load(event) {
 	await requireUser(event);
 	const { url } = event;
 	const inputType = url.searchParams.get('type') ?? 'all';
 	const inputKanton = url.searchParams.get('kanton') ?? 'all';
+	const inputDifficulty = url.searchParams.get('difficulty') ?? 'all';
 	const typeParam = allowedTypes.includes(inputType) ? inputType : 'all';
 	const kantonParam = inputKanton;
+	const difficultyParam = allowedDifficulties.includes(inputDifficulty) ? inputDifficulty : 'all';
 	const userId = new ObjectId(event.locals.user._id);
 	const db = await getDb();
 	const routesCol = db.collection('routes');
@@ -23,15 +26,18 @@ export async function load(event) {
 
 	const typeFilter = typeParam === 'all' ? {} : { type: typeParam };
 	const kantonFilter = kantonParam === 'all' ? {} : { $or: [{ kanton: kantonParam }, { region: kantonParam }] };
+	const difficultyFilter = difficultyParam === 'all' ? {} : { difficulty: difficultyParam };
 	
 	const myRoutesFilter = {
 		...typeFilter,
 		...kantonFilter,
+		...difficultyFilter,
 		$or: [{ ownerId: userId }, { ownerId: { $exists: false } }]
 	};
 	const publicRoutesFilter = {
 		...typeFilter,
 		...kantonFilter,
+		...difficultyFilter,
 		visibility: 'public',
 		ownerId: { $ne: userId, $exists: true }
 	};
@@ -51,7 +57,8 @@ export async function load(event) {
 		visibility: 'public',
 		ownerId: { $ne: userId, $exists: true },
 		...typeFilter,
-		...kantonFilter
+		...kantonFilter,
+		...difficultyFilter
 	};
 	const favoritedRoutesDocs = await routesCol
 		.find(favoritedRoutesFilter)
@@ -105,7 +112,8 @@ export async function load(event) {
 		publicRoutes: publicRoutesWithFavorites,
 		favoritedRoutes: favoritedRoutesDocs.map((r) => mapRoute(r, true)),
 		currentType: typeParam,
-		currentKanton: kantonParam
+		currentKanton: kantonParam,
+		currentDifficulty: difficultyParam
 	};
 }
 

@@ -6,11 +6,13 @@
 	// Local state for form selects - initialized from URL params
 	let selectedType = $state('all');
 	let selectedKanton = $state('all');
+	let selectedDifficulty = $state('all');
 	
 	// Update local state when data changes (e.g., on navigation)
 	$effect(() => {
 		selectedType = data.currentType;
 		selectedKanton = data.currentKanton;
+		selectedDifficulty = data.currentDifficulty;
 	});
 	
 	const typeOptions = [
@@ -48,6 +50,13 @@
 		{ label: 'Wallis', value: 'Wallis' },
 		{ label: 'Zug', value: 'Zug' },
 		{ label: 'Zürich', value: 'Zürich' }
+	];
+
+	const difficultyOptions = [
+		{ label: 'Alle', value: 'all' },
+		{ label: 'Einfach', value: 'easy' },
+		{ label: 'Mittel', value: 'medium' },
+		{ label: 'Schwer', value: 'hard' }
 	];
 
 	// Feedback message for favorites
@@ -88,6 +97,15 @@
 		<label for="kanton">Kanton</label>
 		<select id="kanton" name="kanton" bind:value={selectedKanton}>
 			{#each kantonOptions as option}
+				<option value={option.value}>{option.label}</option>
+			{/each}
+		</select>
+	</div>
+
+	<div class="filter-group">
+		<label for="difficulty">Schwierigkeit</label>
+		<select id="difficulty" name="difficulty" bind:value={selectedDifficulty}>
+			{#each difficultyOptions as option}
 				<option value={option.value}>{option.label}</option>
 			{/each}
 		</select>
