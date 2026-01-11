@@ -2,108 +2,314 @@
 	import MapPreview from '$lib/components/MapPreview.svelte';
 
 	const { data } = $props();
+
+	const typeLabels = {
+		hike: 'Wanderung',
+		run: 'Lauf',
+		bike: 'Velo'
+	};
 </script>
 
-<section class="feed-header">
-	<h1>Activity Feed</h1>
-	<p>Die neuesten Aktivitäten aller User auf einen Blick.</p>
-</section>
+<div class="feed-layout">
+	<!-- Left Sidebar: Profile & Stats -->
+	<aside class="sidebar">
+		<div class="profile-card">
+			<div class="profile-header">
+				{#if data.currentUser.avatarUrl}
+					<img src={data.currentUser.avatarUrl} alt="Avatar" class="profile-avatar" />
+				{:else}
+					<div class="avatar-placeholder-large">👤</div>
+				{/if}
+				<span class="profile-username">
+					{data.currentUser.username || data.currentUser.email.split('@')[0]}
+				</span>
+			</div>
+		</div>
 
-{#if data.activities.length === 0}
-	<div class="empty-state">
-		<p>Noch keine Aktivitäten vorhanden.</p>
-		<a href="/routes" class="cta">Erstelle deine erste Route</a>
-	</div>
-{:else}
-	<ul class="feed-list">
-		{#each data.activities as activity}
-			<li class="feed-card">
-				<div class="card-header">
-					<div class="user-info">
-						{#if activity.user.avatarUrl}
-							<img src={activity.user.avatarUrl} alt="Avatar" class="user-avatar" />
-						{:else}
-							<div class="avatar-placeholder">👤</div>
-						{/if}
-						<span class="user-name">
-							{activity.user.username || activity.user.email.split('@')[0]}
-						</span>
-					</div>
-					<span class="activity-date">{activity.date}</span>
-				</div>
+		<div class="stats-card">
+			<h3>Aktivitäts-Statistiken</h3>
+			
+			<div class="stat-total">
+				<span class="stat-label">Aktivitäten total</span>
+				<span class="stat-value">{data.userStats.totalActivities}</span>
+			</div>
 
-				<div class="activity-content">
-					<div class="route-info">
-						{#if activity.canViewRoute}
-							<a href={`/routes/${activity.routeId}`} class="route-title-link">
-								{activity.routeTitle}
-							</a>
-						{:else}
-							<span class="route-title">{activity.routeTitle}</span>
-						{/if}
-						<div class="route-meta">
-							<span class="badge type">{activity.routeType}</span>
-							{#if activity.routeKanton}
-								<span class="badge region">{activity.routeKanton}</span>
-							{/if}
-							{#if activity.routeOrt}
-								<span class="badge ort">{activity.routeOrt}</span>
-							{/if}
-							<span class="badge distance">{activity.routeDistanceKm} km</span>
+			<div class="stats-by-type">
+				{#each Object.entries(data.userStats.distanceByType) as [type, distance]}
+					<div class="type-stat-card">
+						<div class="type-header">
+							<span class="type-icon">
+								{#if type === 'hike'}🥾{:else if type === 'run'}🏃{:else}🚴{/if}
+							</span>
+							<span class="type-name">{typeLabels[type]}</span>
+						</div>
+						<div class="type-stats">
+							<div class="type-stat">
+								<span class="stat-number">{distance.toFixed(1)}</span>
+								<span class="stat-unit">km</span>
+							</div>
+							<div class="type-stat">
+								<span class="stat-number">{data.userStats.durationByType[type]}</span>
+								<span class="stat-unit">min</span>
+							</div>
 						</div>
 					</div>
+				{/each}
+			</div>
+		</div>
+	</aside>
 
-					<div class="activity-stats">
-						<span class="stat">
-							<strong>{activity.durationMinutes}</strong> min
-						</span>
-						<span class="stat feeling">
-							Feeling: <strong>{activity.feeling}/5</strong>
-						</span>
-						{#if activity.startTime}
-							<span class="stat">Start: {activity.startTime}</span>
-						{/if}
-					</div>
+	<!-- Main Feed Content -->
+	<main class="feed-main">
+		<section class="feed-header">
+			<h1>Activity Feed</h1>
+			<p>Die neuesten Aktivitäten aller User auf einen Blick.</p>
+		</section>
 
-					{#if activity.notes}
-						<p class="notes">{activity.notes}</p>
-					{/if}
-
-					{#if activity.gpxPreview}
-						<div class="map-preview-container">
-							<MapPreview 
-								points={activity.gpxPreview.points} 
-								bounds={activity.gpxPreview.bounds}
-							/>
+		{#if data.activities.length === 0}
+			<div class="empty-state">
+				<p>Noch keine Aktivitäten vorhanden.</p>
+				<a href="/routes" class="cta">Erstelle deine erste Route</a>
+			</div>
+		{:else}
+			<ul class="feed-list">
+				{#each data.activities as activity}
+					<li class="feed-card">
+						<div class="card-header">
+							<div class="user-info">
+								{#if activity.user.avatarUrl}
+									<img src={activity.user.avatarUrl} alt="Avatar" class="user-avatar" />
+								{:else}
+									<div class="avatar-placeholder">👤</div>
+								{/if}
+								<span class="user-name">
+									{activity.user.username || activity.user.email.split('@')[0]}
+								</span>
+							</div>
+							<span class="activity-date">{activity.date}</span>
 						</div>
-					{/if}
 
-					{#if activity.imageUrls?.length}
-						<div class="activity-images">
-							{#each activity.imageUrls as url, index}
-								<div class="image-wrapper">
-									<img 
-										src={url} 
-										alt={`Aktivitätsbild ${index + 1}`} 
-										class="activity-image"
-										loading="lazy"
-										onerror={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'flex'; }}
-									/>
-									<div class="image-error-fallback">
-										<span>📷</span>
-										<span>Nicht verfügbar</span>
-									</div>
+						<div class="activity-content">
+							<div class="route-info">
+								{#if activity.canViewRoute}
+									<a href={`/routes/${activity.routeId}`} class="route-title-link">
+										{activity.routeTitle}
+									</a>
+								{:else}
+									<span class="route-title">{activity.routeTitle}</span>
+								{/if}
+								<div class="route-meta">
+									<span class="badge type">{activity.routeType}</span>
+									{#if activity.routeKanton}
+										<span class="badge region">{activity.routeKanton}</span>
+									{/if}
+									{#if activity.routeOrt}
+										<span class="badge ort">{activity.routeOrt}</span>
+									{/if}
+									<span class="badge distance">{activity.routeDistanceKm} km</span>
 								</div>
-							{/each}
+							</div>
+
+							<div class="activity-stats">
+								<span class="stat">
+									<strong>{activity.durationMinutes}</strong> min
+								</span>
+								<span class="stat feeling">
+									Feeling: <strong>{activity.feeling}/5</strong>
+								</span>
+								{#if activity.startTime}
+									<span class="stat">Start: {activity.startTime}</span>
+								{/if}
+							</div>
+
+							{#if activity.notes}
+								<p class="notes">{activity.notes}</p>
+							{/if}
+
+							{#if activity.gpxPreview}
+								<div class="map-preview-container">
+									<MapPreview 
+										points={activity.gpxPreview.points} 
+										bounds={activity.gpxPreview.bounds}
+									/>
+								</div>
+							{/if}
+
+							{#if activity.imageUrls?.length}
+								<div class="activity-images">
+									{#each activity.imageUrls as url, index}
+										<div class="image-wrapper">
+											<img 
+												src={url} 
+												alt={`Aktivitätsbild ${index + 1}`} 
+												class="activity-image"
+												loading="lazy"
+												onerror={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'flex'; }}
+											/>
+											<div class="image-error-fallback">
+												<span>📷</span>
+												<span>Nicht verfügbar</span>
+											</div>
+										</div>
+									{/each}
+								</div>
+							{/if}
 						</div>
-					{/if}
-				</div>
-			</li>
-		{/each}
-	</ul>
-{/if}
+					</li>
+				{/each}
+			</ul>
+		{/if}
+	</main>
+</div>
 
 <style>
+	/* Layout */
+	.feed-layout {
+		display: grid;
+		grid-template-columns: 250px 1fr;
+		gap: 2rem;
+		align-items: start;
+	}
+
+	/* Sidebar Styles */
+	.sidebar {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		position: sticky;
+		top: 1rem;
+	}
+
+	.profile-card {
+		background: #fff;
+		padding: 1.25rem;
+		border-radius: 16px;
+		box-shadow: 0 4px 12px rgba(5, 43, 86, 0.06);
+	}
+
+	.profile-header {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.profile-avatar {
+		width: 80px;
+		height: 80px;
+		border-radius: 50%;
+		object-fit: cover;
+		border: 3px solid #e2e8f0;
+	}
+
+	.avatar-placeholder-large {
+		width: 80px;
+		height: 80px;
+		border-radius: 50%;
+		background: #e2e8f0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 2.5rem;
+	}
+
+	.profile-username {
+		font-weight: 700;
+		font-size: 1.1rem;
+		color: #1e293b;
+		text-align: center;
+	}
+
+	.stats-card {
+		background: #fff;
+		padding: 1.25rem;
+		border-radius: 16px;
+		box-shadow: 0 4px 12px rgba(5, 43, 86, 0.06);
+	}
+
+	.stats-card h3 {
+		margin: 0 0 1rem;
+		font-size: 1rem;
+		color: #1e293b;
+	}
+
+	.stat-total {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0.75rem;
+		background: #f8fafc;
+		border-radius: 10px;
+		margin-bottom: 1rem;
+	}
+
+	.stat-label {
+		font-size: 0.9rem;
+		color: #64748b;
+	}
+
+	.stat-value {
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: #0a5eb7;
+	}
+
+	.stats-by-type {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.type-stat-card {
+		background: #f8fafc;
+		border-radius: 10px;
+		padding: 0.75rem;
+	}
+
+	.type-header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.type-icon {
+		font-size: 1.1rem;
+	}
+
+	.type-name {
+		font-weight: 600;
+		font-size: 0.9rem;
+		color: #1e293b;
+	}
+
+	.type-stats {
+		display: flex;
+		gap: 1rem;
+	}
+
+	.type-stat {
+		display: flex;
+		align-items: baseline;
+		gap: 0.25rem;
+	}
+
+	.stat-number {
+		font-weight: 700;
+		font-size: 1rem;
+		color: #0a5eb7;
+	}
+
+	.stat-unit {
+		font-size: 0.75rem;
+		color: #64748b;
+	}
+
+	/* Main Feed Styles */
+	.feed-main {
+		min-width: 0;
+	}
+
 	.feed-header {
 		background: #fff;
 		padding: 1.5rem 2rem;
@@ -346,7 +552,34 @@
 		font-size: 1.25rem;
 	}
 
+	@media (max-width: 900px) {
+		.feed-layout {
+			grid-template-columns: 1fr;
+		}
+
+		.sidebar {
+			position: static;
+			flex-direction: row;
+			flex-wrap: wrap;
+		}
+
+		.profile-card,
+		.stats-card {
+			flex: 1;
+			min-width: 250px;
+		}
+	}
+
 	@media (max-width: 600px) {
+		.sidebar {
+			flex-direction: column;
+		}
+
+		.profile-card,
+		.stats-card {
+			width: 100%;
+		}
+
 		.card-header {
 			flex-direction: column;
 			align-items: flex-start;

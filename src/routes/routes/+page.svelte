@@ -1,13 +1,53 @@
 <script>
 	import RouteList from '$lib/components/RouteList.svelte';
 
-	const { data, form } = $props();
-	let selectedType = data.currentType;
+	let { data, form } = $props();
+	
+	// Local state for form selects - initialized from URL params
+	let selectedType = $state('all');
+	let selectedKanton = $state('all');
+	
+	// Update local state when data changes (e.g., on navigation)
+	$effect(() => {
+		selectedType = data.currentType;
+		selectedKanton = data.currentKanton;
+	});
+	
 	const typeOptions = [
 		{ label: 'Alle', value: 'all' },
 		{ label: 'Wanderung', value: 'hike' },
 		{ label: 'Lauf', value: 'run' },
 		{ label: 'Velo', value: 'bike' }
+	];
+
+	const kantonOptions = [
+		{ label: 'Alle Kantone', value: 'all' },
+		{ label: 'Aargau', value: 'Aargau' },
+		{ label: 'Appenzell Ausserrhoden', value: 'Appenzell Ausserrhoden' },
+		{ label: 'Appenzell Innerrhoden', value: 'Appenzell Innerrhoden' },
+		{ label: 'Basel-Landschaft', value: 'Basel-Landschaft' },
+		{ label: 'Basel-Stadt', value: 'Basel-Stadt' },
+		{ label: 'Bern', value: 'Bern' },
+		{ label: 'Freiburg', value: 'Freiburg' },
+		{ label: 'Genf', value: 'Genf' },
+		{ label: 'Glarus', value: 'Glarus' },
+		{ label: 'Graubünden', value: 'Graubünden' },
+		{ label: 'Jura', value: 'Jura' },
+		{ label: 'Luzern', value: 'Luzern' },
+		{ label: 'Neuenburg', value: 'Neuenburg' },
+		{ label: 'Nidwalden', value: 'Nidwalden' },
+		{ label: 'Obwalden', value: 'Obwalden' },
+		{ label: 'Schaffhausen', value: 'Schaffhausen' },
+		{ label: 'Schwyz', value: 'Schwyz' },
+		{ label: 'Solothurn', value: 'Solothurn' },
+		{ label: 'St. Gallen', value: 'St. Gallen' },
+		{ label: 'Tessin', value: 'Tessin' },
+		{ label: 'Thurgau', value: 'Thurgau' },
+		{ label: 'Uri', value: 'Uri' },
+		{ label: 'Waadt', value: 'Waadt' },
+		{ label: 'Wallis', value: 'Wallis' },
+		{ label: 'Zug', value: 'Zug' },
+		{ label: 'Zürich', value: 'Zürich' }
 	];
 
 	// Feedback message for favorites
@@ -27,59 +67,71 @@
 		<h1>Gespeicherte Routen</h1>
 		<p>Filtern, entdecken und Aktivitäten auf deinen Routen loggen.</p>
 	</div>
+	<a class="new-route-btn" href="/routes/new">+ Neue Route</a>
 </section>
-
-<a class="new-route-btn" href="/routes/new">+ Neue Route</a>
 
 {#if feedbackMessage()}
 	<div class="feedback-message success">{feedbackMessage()}</div>
 {/if}
 
 <form method="get" class="filter-form">
-	<label for="type">Nach Aktivitätstyp filtern</label>
-	<select id="type" name="type" bind:value={selectedType}>
-		{#each typeOptions as option}
-			<option value={option.value}>{option.label}</option>
-		{/each}
-	</select>
+	<div class="filter-group">
+		<label for="type">Typ</label>
+		<select id="type" name="type" bind:value={selectedType}>
+			{#each typeOptions as option}
+				<option value={option.value}>{option.label}</option>
+			{/each}
+		</select>
+	</div>
+	
+	<div class="filter-group">
+		<label for="kanton">Kanton</label>
+		<select id="kanton" name="kanton" bind:value={selectedKanton}>
+			{#each kantonOptions as option}
+				<option value={option.value}>{option.label}</option>
+			{/each}
+		</select>
+	</div>
+	
 	<button type="submit">Anwenden</button>
 </form>
 
-<section class="route-section">
-	<h2>Meine Routen</h2>
-	<RouteList
-		routes={data.myRoutes}
-		showAdminActions={true}
-		deleteAction="?/deleteRoute"
-	/>
-</section>
-
-{#if data.favoritedRoutes.length > 0}
+<div class="routes-grid">
 	<section class="route-section">
-		<h2>Gemerkte Routen</h2>
+		<h2>Meine Routen</h2>
 		<RouteList
-			routes={data.favoritedRoutes}
+			routes={data.myRoutes}
+			showAdminActions={true}
+			deleteAction="?/deleteRoute"
+		/>
+		{#if data.favoritedRoutes.length > 0}
+			<h3 class="sub-heading">Gemerkte Routen</h3>
+			<RouteList
+				routes={data.favoritedRoutes}
+				showAdminActions={false}
+				showFavoriteButton={true}
+				isFavoritedList={true}
+			/>
+		{/if}
+	</section>
+
+	<section class="route-section">
+		<h2>Öffentliche Routen</h2>
+		<RouteList
+			routes={data.publicRoutes}
 			showAdminActions={false}
 			showFavoriteButton={true}
-			isFavoritedList={true}
 		/>
-		<p class="hint">Gemerkte öffentliche Routen anderer User.</p>
 	</section>
-{/if}
-
-<section class="route-section">
-	<h2>Öffentliche Routen</h2>
-	<RouteList
-		routes={data.publicRoutes}
-		showAdminActions={false}
-		showFavoriteButton={true}
-	/>
-	<p class="hint">Öffentliche Routen sind nur lesbar.</p>
-</section>
+</div>
 
 <style>
 	.header-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
 		margin-bottom: 1rem;
+		gap: 1rem;
 	}
 
 	.new-route-btn {
@@ -90,9 +142,7 @@
 		color: #fff;
 		text-decoration: none;
 		font-weight: 600;
-		margin-bottom: 1rem;
-		margin-left: auto;
-		float: right;
+		white-space: nowrap;
 	}
 
 	.new-route-btn:hover {
@@ -113,57 +163,109 @@
 	}
 
 	.filter-form {
-		margin-bottom: 1rem;
+		margin-bottom: 1.5rem;
 		display: flex;
-		gap: 0.75rem;
+		flex-direction: row;
 		align-items: flex-end;
-		flex-wrap: wrap;
+		justify-content: center;
+		gap: 1rem;
 		background: #fff;
-		padding: 1rem;
+		padding: 1rem 1.5rem;
 		border-radius: 10px;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-		clear: both;
+		flex-wrap: wrap;
 	}
 
-	label {
+	.filter-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+	}
+
+	.filter-group label {
 		font-weight: 600;
+		font-size: 0.85rem;
+		color: #1e293b;
 	}
 
 	select {
-		padding: 0.5rem;
+		padding: 0.5rem 0.75rem;
 		border-radius: 6px;
 		border: 1px solid #cfcfcf;
-		min-width: 140px;
+		font-size: 0.95rem;
+		min-width: 160px;
 	}
 
-	button {
-		padding: 0.55rem 1rem;
-		border-radius: 8px;
+	.filter-form button {
+		padding: 0.5rem 1.25rem;
+		border-radius: 6px;
 		border: none;
 		background: #052b56;
 		color: #fff;
 		font-weight: 600;
 		cursor: pointer;
+		font-size: 0.95rem;
 	}
 
-	button:hover {
+	.filter-form button:hover {
 		background: #07417f;
 	}
 
-	.route-section {
-		margin-top: 1.5rem;
+	.routes-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 2rem;
+		align-items: start;
 	}
 
-	.hint {
+	.route-section {
+		background: #fff;
+		padding: 1.25rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	}
+
+	.route-section h2 {
+		margin: 0 0 1rem;
+		font-size: 1.1rem;
+		color: #052b56;
+	}
+
+	.sub-heading {
+		margin: 1.5rem 0 0.75rem;
+		font-size: 1rem;
 		color: #64748b;
-		font-size: 0.9rem;
-		margin-top: 0.5rem;
+		border-top: 1px solid #e2e8f0;
+		padding-top: 1rem;
+	}
+
+	@media (max-width: 900px) {
+		.routes-grid {
+			grid-template-columns: 1fr;
+		}
 	}
 
 	@media (max-width: 600px) {
 		.header-row {
 			flex-direction: column;
 			align-items: flex-start;
+		}
+
+		.filter-form {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.filter-group {
+			width: 100%;
+		}
+
+		select {
+			width: 100%;
+		}
+
+		.filter-form button {
+			width: 100%;
 		}
 	}
 </style>

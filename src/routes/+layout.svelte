@@ -42,7 +42,7 @@
 	}
 
 	.page-content {
-		max-width: 960px;
+		max-width: 1400px;
 		margin: 0 auto;
 		width: 100%;
 		padding: 2rem 1.5rem 3rem;

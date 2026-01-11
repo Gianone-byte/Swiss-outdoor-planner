@@ -10,7 +10,9 @@ export async function load(event) {
 	await requireUser(event);
 	const { url } = event;
 	const inputType = url.searchParams.get('type') ?? 'all';
+	const inputKanton = url.searchParams.get('kanton') ?? 'all';
 	const typeParam = allowedTypes.includes(inputType) ? inputType : 'all';
+	const kantonParam = inputKanton;
 	const userId = new ObjectId(event.locals.user._id);
 	const db = await getDb();
 	const routesCol = db.collection('routes');
@@ -20,12 +22,16 @@ export async function load(event) {
 	await ensureFavoritesIndex();
 
 	const typeFilter = typeParam === 'all' ? {} : { type: typeParam };
+	const kantonFilter = kantonParam === 'all' ? {} : { $or: [{ kanton: kantonParam }, { region: kantonParam }] };
+	
 	const myRoutesFilter = {
 		...typeFilter,
+		...kantonFilter,
 		$or: [{ ownerId: userId }, { ownerId: { $exists: false } }]
 	};
 	const publicRoutesFilter = {
 		...typeFilter,
+		...kantonFilter,
 		visibility: 'public',
 		ownerId: { $ne: userId, $exists: true }
 	};
@@ -39,13 +45,16 @@ export async function load(event) {
 		routesCol.find(publicRoutesFilter).sort({ createdAt: -1 }).toArray()
 	]);
 
-	// Get favorited routes that are still public (and not owned by user)
+	// Get favorited routes that are still public (and not owned by user) with filters
+	const favoritedRoutesFilter = {
+		_id: { $in: favoriteRouteIds },
+		visibility: 'public',
+		ownerId: { $ne: userId, $exists: true },
+		...typeFilter,
+		...kantonFilter
+	};
 	const favoritedRoutesDocs = await routesCol
-		.find({
-			_id: { $in: favoriteRouteIds },
-			visibility: 'public',
-			ownerId: { $ne: userId, $exists: true }
-		})
+		.find(favoritedRoutesFilter)
 		.sort({ createdAt: -1 })
 		.toArray();
 
@@ -95,7 +104,8 @@ export async function load(event) {
 		myRoutes: myRoutesDocs.map((r) => mapRoute(r)),
 		publicRoutes: publicRoutesWithFavorites,
 		favoritedRoutes: favoritedRoutesDocs.map((r) => mapRoute(r, true)),
-		currentType: typeParam
+		currentType: typeParam,
+		currentKanton: kantonParam
 	};
 }
 

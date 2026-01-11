@@ -14,6 +14,37 @@ export async function load(event) {
 	const routesCol = db.collection('routes');
 	const usersCol = db.collection('users');
 
+	// Get current user profile
+	const currentUser = await usersCol.findOne({ _id: userId });
+	
+	// Get current user's activities for stats
+	const userActivityDocs = await activitiesCol.find({ userId }).toArray();
+	const userRouteIds = [...new Set(userActivityDocs.map((a) => a.routeId?.toString()).filter(Boolean))];
+	let userRouteMap = new Map();
+	if (userRouteIds.length) {
+		const userRouteDocs = await routesCol
+			.find({ _id: { $in: userRouteIds.map((id) => new ObjectId(id)) } })
+			.toArray();
+		userRouteMap = new Map(userRouteDocs.map((route) => [route._id.toString(), route]));
+	}
+
+	// Calculate user stats
+	const userStats = {
+		totalActivities: userActivityDocs.length,
+		distanceByType: { hike: 0, run: 0, bike: 0 },
+		durationByType: { hike: 0, run: 0, bike: 0 }
+	};
+
+	for (const activity of userActivityDocs) {
+		const route = userRouteMap.get(activity.routeId?.toString());
+		if (route && typeof route.distanceKm === 'number') {
+			userStats.distanceByType[route.type] = (userStats.distanceByType[route.type] || 0) + route.distanceKm;
+		}
+		if (route) {
+			userStats.durationByType[route.type] = (userStats.durationByType[route.type] || 0) + (activity.durationMinutes ?? 0);
+		}
+	}
+
 	// Get last 20 activities from all users
 	const activityDocs = await activitiesCol
 		.find({})
@@ -90,5 +121,13 @@ export async function load(event) {
 		};
 	});
 
-	return { activities };
+	return { 
+		activities,
+		currentUser: {
+			username: currentUser?.username ?? null,
+			avatarUrl: currentUser?.avatarUrl ?? null,
+			email: currentUser?.email ?? event.locals.user.email
+		},
+		userStats
+	};
 }
