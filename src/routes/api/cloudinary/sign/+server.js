@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import crypto from 'crypto';
-import { CLOUDINARY_API_SECRET, CLOUDINARY_API_KEY, CLOUDINARY_CLOUD_NAME, CLOUDINARY_FOLDER } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 /**
  * Cloudinary Signed Upload Endpoint
@@ -15,16 +15,16 @@ export async function POST({ locals }) {
 	}
 
 	// Check if Cloudinary is configured
-	if (!CLOUDINARY_API_SECRET || !CLOUDINARY_API_KEY || !CLOUDINARY_CLOUD_NAME) {
+	if (!env.CLOUDINARY_API_SECRET || !env.CLOUDINARY_API_KEY || !env.CLOUDINARY_CLOUD_NAME) {
 		throw error(500, 'Cloudinary is not configured');
 	}
 
 	const timestamp = Math.round(Date.now() / 1000);
-	const folder = CLOUDINARY_FOLDER || 'swiss-outdoor-planner';
+	const folder = env.CLOUDINARY_FOLDER || 'swiss-outdoor-planner';
 
 	// Build the string to sign (parameters must be in alphabetical order)
 	// Format: folder=xxx&timestamp=xxxAPI_SECRET
-	const stringToSign = `folder=${folder}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
+	const stringToSign = `folder=${folder}&timestamp=${timestamp}${env.CLOUDINARY_API_SECRET}`;
 	
 	// Create SHA-1 signature
 	const signature = crypto
@@ -35,8 +35,8 @@ export async function POST({ locals }) {
 	return json({
 		timestamp,
 		signature,
-		apiKey: CLOUDINARY_API_KEY,
-		cloudName: CLOUDINARY_CLOUD_NAME,
+		apiKey: env.CLOUDINARY_API_KEY,
+		cloudName: env.CLOUDINARY_CLOUD_NAME,
 		folder
 	});
 }
